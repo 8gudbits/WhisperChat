@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="{{ url_for('static', filename='assets/favicon.ico') }}" type="image/x-icon" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}" />
+    <title>Whisper Chat</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
+  </head>
+  <body>
+    <section class="topheader">
+      <img src="{{ url_for('static', filename='assets/logo.png') }}" class="logo-image slideDown slider-duration-600ms" />
+      <h1 class="slideRight slider-duration-600ms">Whisper Chat</h1>
+      <p class="smaller-paragraph slideLeft slider-duration-600ms">
+        <b>Connect Silently, Share Secrets.</b>
+      </p>
+    </section>
+    <section>
+      <div class="topwave">
+        <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+          <path d="M985.66,92.83C906.67,72,823.78,31,743.84,14.19c-82.26-17.34-168.06-16.33-250.45.39-57.84,11.73-114,31.07-172,41.86A600.21,600.21,0,0,1,0,27.35V120H1200V95.8C1132.19,118.92,1055.71,111.31,985.66,92.83Z" class="shape-fill"></path>
+        </svg>
+      </div>
+    </section>
+    <section>
+      <main class="content">
+        <form method="post">
+          <h3 class="slideUp slider-duration-400ms">Enter The Chat Room</h3>
+          <div class="input-group">
+            <input type="text" id="name" class="slideRight slider-duration-600ms" placeholder="Pick a name!" name="name" value="{{ name }}" required />
+          </div>
+          <div class="input-group">
+            <input type="password" class="slideLeft slider-duration-600ms" placeholder="Enter Room Code" name="code" value="{{ code }}" />
+          </div>
+          <button type="submit" class="button-hover btn slideRight slider-duration-700ms" name="join">Join a Room</button>
+          <button type="submit" class="create-btn button-hover btn slideLeft slider-duration-700ms" name="create">Create a Room</button>
+          {% if error %}
+          <div class="error-message slideUp slider-duration-800ms">
+            <p>{{ error }}</p>
+          </div>
+          {% endif %}
+        </form>
+      </main>
+    </section>
+    <footer class="slideUp slider-duration-800ms" align="center">
+      <pre>© 2024 <a href="/">Whisper Chat</a> | <a href="https://github.com/TechWhizKid">TechWhizKid</a></pre>
+    </footer>
+  </body>
+</html>
+

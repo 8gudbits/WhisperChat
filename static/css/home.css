@@ -1,0 +1,357 @@
+:root {
+  --background: #282A36;
+  --foreground: #F8F8F2;
+  --red: #FF5555;
+  --purple: #BD93F9;
+  --raisin-black: #242135;
+  --medium-slate-blue: #434E71;
+  --very-dark-blue: #20222B;
+  --regular-grey: #414558;
+  --medium-purple: #7766CC;
+  --dark-purple: #3c3463;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  position: relative;
+  background-color: var(--background);
+  background-image: radial-gradient(circle, var(--dark-purple) 0%, var(--raisin-black) 100%);
+  background-size: 300% 300%;
+  animation: backgroundAnimation 15s ease-in-out infinite;
+  color: var(--foreground);
+  font-family: 'Roboto', sans-serif;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  user-select: none;
+}
+
+@keyframes backgroundAnimation {
+  0% {
+    background-size: 300% 300%;
+    background-position: center
+  }
+
+  20% {
+    background-size: 300% 300%;
+    background-position: top left;
+  }
+
+  40% {
+    background-size: 300% 300%;
+    background-position: bottom right;
+  }
+
+  60% {
+    background-size: 300% 300%;
+    background-position: top right;
+  }
+
+  80% {
+    background-size: 300% 300%;
+    background-position: bottom left;
+  }
+
+  100% {
+    background-size: 300% 300%;
+    background-position: center;
+  }
+}
+
+section {
+  min-height: 64px;
+  padding: 8px 20vw;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.logo-image {
+  margin-top: 16px;
+  width: 80px;
+  height: 80px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 3rem;
+  text-align: center;
+  background: linear-gradient(to right, var(--medium-purple), var(--purple));
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.smaller-paragraph {
+  margin-top: 4px;
+}
+
+.topheader {
+  background: var(--very-dark-blue);
+}
+
+.topwave {
+  width: 100%;
+  line-height: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  transform: rotate(180deg);
+}
+
+.topwave svg {
+  width: calc(145% + 1.3px);
+  height: 50px;
+  position: relative;
+  display: block;
+}
+
+.topwave .shape-fill {
+  fill: var(--very-dark-blue);
+}
+
+.content {
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+form {
+  margin-bottom: 50px;
+  max-width: 296px;
+  padding: 20px;
+  padding-top: 30px;
+  padding-bottom: 50px;
+  background-color: var(--very-dark-blue);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+h3 {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 1.7em;
+}
+
+.input-group {
+  margin-bottom: 8px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+input[type="text"],
+input[type="password"] {
+  margin: 0;
+  width: 90%;
+  max-width: 360px;
+  background-color: var(--background);
+  color: var(--foreground);
+  backdrop-filter: blur(.8rem);
+  border: 1px solid var(--regular-grey);
+  border-radius: 16px;
+  outline: none;
+  text-align: center;
+  font-size: 1.5rem;
+}
+
+button {
+  margin: 3px;
+  margin-bottom: 5px;
+  padding: 10px 20px;
+  background-color: var(--medium-slate-blue);
+  color: var(--foreground);
+  cursor: pointer;
+  border: none;
+  border-radius: 16px;
+  width: 150px;
+}
+
+button:hover {
+  background-color: var(--very-dark-blue);
+}
+
+.button-hover {
+  border: none;
+  width: 91%;
+  cursor: pointer;
+  text-align: center;
+  background-size: 300% 100%;
+  color: var(--foreground);
+  border-radius: 50px;
+  -o-transition: all .4s ease-in-out;
+  -webkit-transition: all .4s ease-in-out;
+  transition: all .4s ease-in-out;
+}
+
+.button-hover.btn {
+  background-image: linear-gradient(to right,
+      #5664da,
+      #653192,
+      #5a72b6,
+      #7d26c7);
+  box-shadow: 0 4px 15px 0 rgba(104, 67, 148, 0.75);
+}
+
+.button-hover:hover {
+  background-position: 100% 0;
+  -o-transition: all .4s ease-in-out;
+  -webkit-transition: all .4s ease-in-out;
+  transition: all .4s ease-in-out;
+}
+
+.button-hover:focus {
+  outline: none;
+}
+
+.error-message {
+  color: var(--red);
+  text-align: center;
+  margin-top: 10px;
+}
+
+pre {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 12px;
+  text-align: center;
+}
+
+a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+footer {
+  margin-top: auto;
+  padding: 0;
+  bottom: 0;
+  width: 100%;
+  background-color: var(--very-dark-blue);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  text-align: center;
+}
+
+.text {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 0;
+}
+
+/* slide right animation */
+
+@keyframes slideRight {
+  from {
+    transform: translateX(-950px);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+.slideRight {
+  animation: slideRight 0s ease-in 0s 1 normal;
+}
+
+/* slide left animation */
+
+@keyframes slideLeft {
+  from {
+    transform: translateX(950px);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+.slideLeft {
+  animation: slideLeft 0s ease-in 0s 1 normal;
+}
+
+/* slide up animation */
+
+@keyframes slideUp {
+  from {
+    transform: translateY(550px);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+.slideUp {
+  animation: slideUp 0s ease-in 0s 1 normal;
+}
+
+/* slide down animation */
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-350px);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+.slideDown {
+  animation: slideDown 0s ease-in 0s 1 normal;
+}
+
+/* animation time */
+
+.slider-duration-400ms {
+  animation-duration: 400ms;
+}
+
+.slider-duration-450ms {
+  animation-duration: 450ms;
+}
+
+.slider-duration-500ms {
+  animation-duration: 500ms;
+}
+
+.slider-duration-550ms {
+  animation-duration: 550ms;
+}
+
+.slider-duration-600ms {
+  animation-duration: 600ms;
+}
+
+.slider-duration-650ms {
+  animation-duration: 650ms;
+}
+
+.slider-duration-700ms {
+  animation-duration: 700ms;
+}
+
+.slider-duration-750ms {
+  animation-duration: 750ms;
+}
+
+.slider-duration-800ms {
+  animation-duration: 800ms;
+}
+
+.slider-duration-850ms {
+  animation-duration: 850ms;
+}
+
+@media (max-width: 480px) {}
+
+@media (max-width: 375px) {}
+
