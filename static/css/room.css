@@ -1,0 +1,270 @@
+:root {
+    --background: #282A36;
+    --foreground: #F8F8F2;
+    --red: #FF5555;
+    --purple: #BD93F9;
+    --raisin-black: #242135;
+    --medium-slate-blue: #434E71;
+    --very-dark-blue: #20222B;
+    --regular-grey: #414558;
+    --medium-purple: #7766CC;
+    --dark-purple: #3C3463;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    position: relative;
+    background-color: var(--background);
+    background-image: radial-gradient(circle, var(--dark-purple) 0%, var(--raisin-black) 100%);
+    background-size: 300% 300%;
+    animation: backgroundAnimation 15s ease-in-out infinite;
+    color: var(--foreground);
+    font-family: 'Roboto', sans-serif;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+    user-select: none;
+}
+
+@keyframes backgroundAnimation {
+    0% {
+        background-size: 300% 300%;
+        background-position: center
+    }
+
+    20% {
+        background-size: 300% 300%;
+        background-position: top left;
+    }
+
+    40% {
+        background-size: 300% 300%;
+        background-position: bottom right;
+    }
+
+    60% {
+        background-size: 300% 300%;
+        background-position: top right;
+    }
+
+    80% {
+        background-size: 300% 300%;
+        background-position: bottom left;
+    }
+
+    100% {
+        background-size: 300% 300%;
+        background-position: center;
+    }
+}
+
+section {
+    min-height: 64px;
+    padding: 8px 20vw;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+h1 {
+    margin: 0;
+    font-size: 2.2rem;
+    text-align: center;
+    background: linear-gradient(to right, var(--medium-purple), var(--purple));
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.topheader {
+    background: var(--very-dark-blue);
+}
+
+.content {
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.message-box {
+    border-radius: 10px;
+    background-color: var(--very-dark-blue);
+    height: 80vh;
+    display: flex;
+    flex-direction: column;
+    width: 96%;
+    max-width: 900px;
+    margin: 20px auto;
+    padding: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.messages {
+    overflow-y: auto;
+    flex: 1;
+    padding: 10px;
+    border: 1px solid var(--background);
+    border-radius: 10px;
+    margin-bottom: 10px;
+    background-color: rgba(255, 255, 255, 0.1);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+}
+
+.messages::-webkit-scrollbar {
+    width: 12px;
+}
+
+.messages::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+.messages::-webkit-scrollbar-thumb {
+    background: var(--dark-gray);
+    border-radius: 10px;
+}
+
+.messages::-webkit-scrollbar-thumb:hover {
+    background: var(--light-gray);
+}
+
+.messages {
+    scrollbar-width: thin;
+    scrollbar-color: var(--dark-gray) rgba(255, 255, 255, 0.1);
+}
+
+.username {
+    color: var(--medium-purple);
+}
+
+.inputs {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+}
+
+input[type="text"] {
+    margin: 0;
+    width: 100%;
+    background-color: var(--background);
+    color: var(--foreground);
+    backdrop-filter: blur(.8rem);
+    border: 1px solid var(--regular-grey);
+    border-radius: 16px;
+    outline: none;
+    text-align: center;
+    font-size: 1.5rem;
+}
+
+button {
+    margin: 3px;
+    margin-left: 8px;
+    padding: 9px;
+    background-color: var(--medium-slate-blue);
+    color: var(--foreground);
+    cursor: pointer;
+    border: none;
+    border-radius: 50px;
+    min-width: 70px;
+}
+
+button:hover {
+    background-color: var(--background);
+}
+
+.button-hover {
+    cursor: pointer;
+    text-align: center;
+    background-size: 300% 100%;
+    color: var(--foreground);
+    -o-transition: all .4s ease-in-out;
+    -webkit-transition: all .4s ease-in-out;
+    transition: all .4s ease-in-out;
+}
+
+.button-hover.btn {
+    background-image: linear-gradient(to right,
+            #5664da,
+            #653192,
+            #5a72b6,
+            #7d26c7);
+    box-shadow: 0 4px 15px 0 rgba(104, 67, 148, 0.75);
+}
+
+.button-hover:hover {
+    background-position: 100% 0;
+    -o-transition: all .4s ease-in-out;
+    -webkit-transition: all .4s ease-in-out;
+    transition: all .4s ease-in-out;
+}
+
+.button-hover:focus {
+    outline: none;
+}
+
+.text {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+}
+
+.muted {
+    font-size: 10px;
+    color: darkgray;
+    align-self: flex-end;
+}
+
+.toast {
+    visibility: hidden;
+    min-width: 250px;
+    margin-left: -125px;
+    background-color: var(--medium-slate-blue);
+    color: var(--foreground);
+    text-align: center;
+    border-radius: 16px;
+    padding: 16px;
+    position: fixed;
+    z-index: 1;
+    left: 50%;
+    top: 30px;
+    font-size: 17px;
+}
+
+.toast.show {
+    visibility: visible;
+    animation: fadein 0.5s, fadeout 0.5s 2.5s;
+}
+
+@keyframes fadein {
+    from {
+        top: -50px;
+        opacity: 0;
+    }
+
+    to {
+        top: 30px;
+        opacity: 1;
+    }
+}
+
+@keyframes fadeout {
+    from {
+        top: 30px;
+        opacity: 1;
+    }
+
+    to {
+        top: -50px;
+        opacity: 0;
+    }
+}
+
+@media (max-width: 480px) {}
+
+@media (max-width: 375px) {}
+
