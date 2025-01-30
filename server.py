@@ -3,14 +3,20 @@ from logging.config import dictConfig
 from flask import Flask, render_template, request, session, redirect, url_for
 from flask_socketio import join_room, leave_room, send, SocketIO
 from string import ascii_uppercase
+from datetime import datetime
 
+
+# ANSI escape codes for colors
+LAQUA = "\033[96m"    # Light Aqua
+GREEN = "\033[92m"    # Bright green
+RESET = "\033[0m"     # Reset to default
 
 APPNAME, VERSION = "WhisperChat", "1.0.0"
 SECRET_KEY = secrets.token_hex(24)
 
 
 class WhisperChat:
-    def __init__(self, host="0.0.0.0", port=8080):
+    def __init__(self, host="127.0.0.1", port=8080):
         self.app = Flask(f"{APPNAME} - v{VERSION}")
         self.app.config["SECRET_KEY"] = SECRET_KEY
         self.socketio = SocketIO(self.app)
@@ -137,10 +143,12 @@ class WhisperChat:
             print(f"{name} has left the room {room}")
 
     def run(self, debug=False):
+        start_time = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
+        print(f"{GREEN}{start_time}{RESET} {APPNAME} v{VERSION} starting up on {LAQUA}http://{self.SERVER_HOST}:{self.SERVER_PORT}{RESET}")
         self.socketio.run(self.app, host=self.SERVER_HOST, port=self.SERVER_PORT, debug=debug)
 
 
 if __name__ == "__main__":
-    live_chat_room = WhisperChat(host="0.0.0.0", port=8080)
+    live_chat_room = WhisperChat(host="127.0.0.1", port=8080)
     live_chat_room.run(debug=True)
 
