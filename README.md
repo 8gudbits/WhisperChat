@@ -4,5 +4,5 @@ _Whisper Chat is a self-hostable real-time messaging application that allows use
 
 ---
 
-<p align="center">Web UI comming soon!</p>
+<p align="center">Looks good on PC screen only for now!</p>
 
