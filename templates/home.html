@@ -3,49 +3,195 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="icon" href="{{ url_for('static', filename='assets/favicon.ico') }}" type="image/x-icon" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}" />
     <title>Whisper Chat</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
   </head>
   <body>
-    <section class="topheader">
-      <img src="{{ url_for('static', filename='assets/logo.png') }}" class="logo-image slideDown slider-duration-600ms" />
-      <h1 class="slideRight slider-duration-600ms">Whisper Chat</h1>
-      <p class="smaller-paragraph slideLeft slider-duration-600ms">
-        <b>Connect Silently, Share Secrets.</b>
-      </p>
-    </section>
-    <section>
-      <div class="topwave">
-        <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
-          <path d="M985.66,92.83C906.67,72,823.78,31,743.84,14.19c-82.26-17.34-168.06-16.33-250.45.39-57.84,11.73-114,31.07-172,41.86A600.21,600.21,0,0,1,0,27.35V120H1200V95.8C1132.19,118.92,1055.71,111.31,985.66,92.83Z" class="shape-fill"></path>
-        </svg>
+    <div class="particles-container" id="particles-js"></div>
+    <section class="header">
+      <div class="header-content">
+        <div class="logo-container">
+          <img src="{{ url_for('static', filename='assets/logo.png') }}" class="logo-image floating" />
+          <h1 class="gradient-text">Whisper Chat</h1>
+          <p class="tagline">
+            <b>Connect Silently, Share Secrets.</b>
+          </p>
+        </div>
       </div>
     </section>
-    <section>
-      <main class="content">
-        <form method="post">
-          <h3 class="slideUp slider-duration-400ms">Enter The Chat Room</h3>
-          <div class="input-group">
-            <input type="text" id="name" class="slideRight slider-duration-600ms" placeholder="Pick a name!" name="name" value="{{ name }}" required />
+    <section class="auth-section">
+      <div class="auth-card">
+        <form method="post" class="auth-form">
+          <h3>Enter The Chat Room</h3>
+          <div class="input-container">
+            <input
+              type="text"
+              id="name"
+              placeholder=" "
+              name="name"
+              value="{{ name }}"
+              required
+            />
+            <label for="name">Pick a name</label>
+            <div class="underline"></div>
           </div>
-          <div class="input-group">
-            <input type="password" class="slideLeft slider-duration-600ms" placeholder="Enter Room Code" name="code" value="{{ code }}" />
+          <div class="input-container">
+            <input
+              type="password"
+              placeholder=" "
+              name="code"
+              value="{{ code }}"
+            />
+            <label>Room Code</label>
+            <div class="underline"></div>
           </div>
-          <button type="submit" class="button-hover btn slideRight slider-duration-700ms" name="join">Join a Room</button>
-          <button type="submit" class="create-btn button-hover btn slideLeft slider-duration-700ms" name="create">Create a Room</button>
+          <div class="button-group">
+            <button type="submit" class="btn-gradient" name="join">
+              <span>Join Room</span>
+            </button>
+            <button type="submit" class="btn-gradient create" name="create">
+              <span>Create Room</span>
+            </button>
+          </div>
           {% if error %}
-          <div class="error-message slideUp slider-duration-800ms">
+          <div class="error-message">
             <p>{{ error }}</p>
           </div>
           {% endif %}
         </form>
-      </main>
+      </div>
     </section>
-    <footer class="slideUp slider-duration-800ms" align="center">
-      <pre>© 2024 <a href="/">Whisper Chat</a> | <a href="https://github.com/TechWhizKid">TechWhizKid</a></pre>
+    <footer>
+      <div class="footer-content">
+        <p>
+          © 2025 <a href="/">Whisper Chat</a> |
+          <a href="https://github.com/TechWhizKid">TechWhizKid</a>
+        </p>
+      </div>
     </footer>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        particlesJS("particles-js", {
+          particles: {
+            number: {
+              value: 80,
+              density: {
+                enable: true,
+                value_area: 800,
+              },
+            },
+            color: {
+              value: "#BD93F9",
+            },
+            shape: {
+              type: "circle",
+              stroke: {
+                width: 0,
+                color: "#000000",
+              },
+            },
+            opacity: {
+              value: 0.5,
+              random: true,
+              anim: {
+                enable: true,
+                speed: 1,
+                opacity_min: 0.1,
+                sync: false,
+              },
+            },
+            size: {
+              value: 3,
+              random: true,
+              anim: {
+                enable: true,
+                speed: 2,
+                size_min: 0.1,
+                sync: false,
+              },
+            },
+            line_linked: {
+              enable: true,
+              distance: 150,
+              color: "#434E71",
+              opacity: 0.4,
+              width: 1,
+            },
+            move: {
+              enable: true,
+              speed: 1,
+              direction: "none",
+              random: true,
+              straight: false,
+              out_mode: "out",
+              bounce: false,
+              attract: {
+                enable: true,
+                rotateX: 600,
+                rotateY: 1200,
+              },
+            },
+          },
+          interactivity: {
+            detect_on: "canvas",
+            events: {
+              onhover: {
+                enable: true,
+                mode: "grab",
+              },
+              onclick: {
+                enable: true,
+                mode: "push",
+              },
+              resize: true,
+            },
+            modes: {
+              grab: {
+                distance: 140,
+                line_linked: {
+                  opacity: 1,
+                },
+              },
+              push: {
+                particles_nb: 4,
+              },
+            },
+          },
+          retina_detect: true,
+        });
+
+        // Input focus effects
+        const inputs = document.querySelectorAll(".input-container input");
+        inputs.forEach((input) => {
+          input.addEventListener("focus", function () {
+            this.parentNode.querySelector(".underline").style.transform =
+              "scaleX(1)";
+            this.parentNode.querySelector("label").style.transform =
+              "translateY(-20px) scale(0.8)";
+          });
+
+          input.addEventListener("blur", function () {
+            if (!this.value) {
+              this.parentNode.querySelector(".underline").style.transform =
+                "scaleX(0)";
+              this.parentNode.querySelector("label").style.transform =
+                "translateY(0) scale(1)";
+            }
+          });
+
+          // Initialize labels if values exist
+          if (input.value) {
+            input.parentNode.querySelector("label").style.transform =
+              "translateY(-20px) scale(0.8)";
+            input.parentNode.querySelector(".underline").style.transform =
+              "scaleX(1)";
+          }
+        });
+      });
+    </script>
   </body>
 </html>
-

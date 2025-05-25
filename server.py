@@ -145,7 +145,21 @@ class WhisperChat:
     def run(self, debug=False):
         start_time = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
         print(f"{GREEN}{start_time}{RESET} {APPNAME} v{VERSION} starting up on {LAQUA}http://{self.SERVER_HOST}:{self.SERVER_PORT}{RESET}")
-        self.socketio.run(self.app, host=self.SERVER_HOST, port=self.SERVER_PORT, debug=debug)
+
+        if debug:
+            # Development mode with auto-reloader
+            self.socketio.run(self.app, 
+                            host=self.SERVER_HOST, 
+                            port=self.SERVER_PORT, 
+                            debug=True, 
+                            use_reloader=True)
+        else:
+            # Production mode
+            self.socketio.run(self.app, 
+                            host=self.SERVER_HOST, 
+                            port=self.SERVER_PORT,
+                            debug=False,
+                            log_output=True)
 
 
 if __name__ == "__main__":
