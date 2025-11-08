@@ -13,6 +13,11 @@ A self-hostable real-time messaging application that allows users to communicate
 
 ## Screenshots
 
-![Screenshot 1](./preview/home.png)
-![Screenshot 2](./preview/room.png)
+<div align="center">
+
+![](./preview/index.png)
+![](./preview/chat-pc.png)
+![](./preview/chat-mobile.png)
+
+</div>
 

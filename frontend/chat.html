@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Whisper Chat Room</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="css/chat.css" />
+  </head>
+  <body>
+    <div class="particles-container" id="particles-js"></div>
+
+    <header class="chat-header">
+      <div class="header-content">
+        <h1>Whisper Chat</h1>
+        <div class="room-info">
+          <span id="room-code-display">Loading...</span>
+          <button id="copy-btn" class="btn-copy">Copy</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="chat-main">
+      <div class="chat-container">
+        <div class="messages-container" id="messages-container">
+          <!-- Messages will be inserted here -->
+        </div>
+
+        <div class="input-container">
+          <input
+            type="text"
+            id="message-input"
+            placeholder="Type your message..."
+          />
+          <button id="send-btn" class="btn-send">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22,2 15,22 11,13 2,9"></polygon>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <div id="toast" class="toast">Room code copied!</div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="js/chat.js"></script>
+  </body>
+</html>
+
