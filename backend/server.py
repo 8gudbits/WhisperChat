@@ -1,31 +1,37 @@
-import os, secrets, random, threading
+import os, secrets, random, threading, base64
 from logging.config import dictConfig
 from flask import Flask, request, jsonify
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from flask_cors import CORS
 from string import ascii_uppercase
 from datetime import datetime
+from io import BytesIO
+from PIL import Image
 
 
-# =========================================================== #
-#  CONFIGURATION - Edit these values to customize the server  #
-# =========================================================== #
+# ===================================================== #
+#  CONFIGURATION - Edit values to customize the server  #
+# ===================================================== #
 class Config:
-    # Application Settings
+    ###  Application Settings  ###
     APP_NAME = "WhisperChat"
-    VERSION = "2.0.0-rc2"
+    VERSION = "2.0.0-rc3"
     SECRET_KEY = os.getenv("SECRET_KEY", secrets.token_hex(24))
 
-    # Server Settings
+    ###  Server Settings  ###
     HOST = os.getenv("HOST", "0.0.0.0")
     PORT = int(os.getenv("PORT", 8080))
 
-    # CORS Settings
+    ### CORS Settings  ###
     ORIGINS = ["*"]  # Allow all origins; modify as needed
 
-    # Room Settings
+    ### Room Settings  ###
     ROOM_CODE_LENGTH = 6
     ROOM_CLEANUP_DELAY = 120.0  # in seconds (2 minutes)
+
+    ### Image Settings ###
+    MAX_IMAGE_SIZE = 8 * 1024 * 1024  # 8MB
+    MAX_IMAGE_DIMENSION = 1200  # pixels
 
     # ANSI colors for console output
     class Colors:
@@ -41,6 +47,7 @@ class ChatServer:
     def __init__(self, host=None, port=None):
         self.app = Flask(f"{Config.APP_NAME}-API")
         self.app.config["SECRET_KEY"] = Config.SECRET_KEY
+        self.app.config["MAX_CONTENT_LENGTH"] = Config.MAX_IMAGE_SIZE
 
         # CORS configuration
         CORS(self.app, resources={r"/api/*": {"origins": Config.ORIGINS}})
@@ -66,6 +73,51 @@ class ChatServer:
             code = "".join(random.choices(ascii_uppercase, k=length))
             if code not in self.rooms:
                 return code
+
+    def _validate_and_optimize_image(self, image_data):
+        """Validate and optimize uploaded image"""
+        try:
+            # Remove data URL prefix if present
+            if "," in image_data:
+                image_data = image_data.split(",")[1]
+
+            # Decode base64
+            image_bytes = base64.b64decode(image_data)
+
+            # Check file size
+            if len(image_bytes) > Config.MAX_IMAGE_SIZE:
+                return None, "Image size too large (max 8MB)"
+
+            # Open image with PIL
+            image = Image.open(BytesIO(image_bytes))
+
+            # Check image format
+            if image.format not in ["JPEG", "PNG", "GIF", "WEBP"]:
+                return None, "Unsupported image format"
+
+            # Resize if too large
+            if max(image.size) > Config.MAX_IMAGE_DIMENSION:
+                image.thumbnail(
+                    (Config.MAX_IMAGE_DIMENSION, Config.MAX_IMAGE_DIMENSION),
+                    Image.Resampling.LANCZOS,
+                )
+
+            # Convert to RGB if necessary (for JPEG)
+            if image.format == "JPEG" and image.mode in ("RGBA", "P"):
+                image = image.convert("RGB")
+
+            # Save optimized image
+            output = BytesIO()
+            if image.format == "PNG":
+                image.save(output, format="PNG", optimize=True)
+            else:
+                image.save(output, format="JPEG", quality=85, optimize=True)
+
+            optimized_data = base64.b64encode(output.getvalue()).decode("utf-8")
+            return optimized_data, None
+
+        except Exception as e:
+            return None, f"Invalid image: {str(e)}"
 
     def _setup_logging(self):
         dictConfig(
@@ -268,8 +320,12 @@ class ChatServer:
             room_code = session_data.get("room_code")
             username = session_data.get("username")
             message_text = data.get("message")
+            image_data = data.get("image")
 
-            if not room_code or room_code not in self.rooms or not message_text:
+            if not room_code or room_code not in self.rooms:
+                return
+
+            if not message_text and not image_data:
                 return
 
             # Update last activity
@@ -282,13 +338,27 @@ class ChatServer:
                 "timestamp": datetime.now().isoformat(),
             }
 
+            # Handle image if present
+            if image_data:
+                optimized_image, error = self._validate_and_optimize_image(image_data)
+                if error:
+                    emit("error", {"message": error})
+                    return
+                message_data["image"] = optimized_image
+                message_data["type"] = "image"
+                if not message_text:
+                    message_data["message"] = "Sent an image"
+
             # Store message
             self.rooms[room_code]["messages"].append(message_data)
 
             # Broadcast to room
             emit("new_message", message_data, to=room_code)
 
-            print(f"Message from {username} in {room_code}: {message_text}")
+            log_message = f"Message from {username} in {room_code}"
+            if image_data:
+                log_message += " (with image)"
+            print(log_message)
 
     def start(self, debug=False):
         start_time = datetime.now().strftime("%Y/%m/%d %H:%M:%S")

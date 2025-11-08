@@ -26,9 +26,7 @@
 
     <main class="chat-main">
       <div class="chat-container">
-        <div class="messages-container" id="messages-container">
-          <!-- Messages will be inserted here -->
-        </div>
+        <div class="messages-container" id="messages-container"></div>
 
         <div class="input-container">
           <input
@@ -36,14 +34,29 @@
             id="message-input"
             placeholder="Type your message..."
           />
-          <button id="send-btn" class="btn-send">
+          <button id="action-btn" class="btn-action" title="Upload Image">
             <svg
+              id="image-icon"
               width="20"
               height="20"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
               stroke-width="2"
+            >
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <circle cx="8.5" cy="8.5" r="1.5"></circle>
+              <polyline points="21,15 16,10 5,21"></polyline>
+            </svg>
+            <svg
+              id="send-icon"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              style="display: none"
             >
               <line x1="22" y1="2" x2="11" y2="13"></line>
               <polygon points="22,2 15,22 11,13 2,9"></polygon>
@@ -52,6 +65,24 @@
         </div>
       </div>
     </main>
+
+    <input
+      type="file"
+      id="image-input"
+      accept="image/*"
+      style="display: none"
+    />
+
+    <div id="image-modal" class="image-modal">
+      <div class="image-modal-content">
+        <span class="image-modal-close">&times;</span>
+        <img id="image-modal-img" src="" alt="Preview" />
+        <div class="image-modal-actions">
+          <button id="send-image-btn" class="btn-send-image">Send Image</button>
+          <button id="cancel-image-btn" class="btn-cancel-image">Cancel</button>
+        </div>
+      </div>
+    </div>
 
     <div id="toast" class="toast">Room code copied!</div>
 

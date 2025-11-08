@@ -7,6 +7,8 @@ class ChatRoom {
       this.roomCode = null;
       this.username = null;
       this.lastSender = null;
+      this.pendingImage = null;
+      this.isSendMode = false;
       this.init();
     });
   }
@@ -39,7 +41,6 @@ class ChatRoom {
   }
 
   setupParticles() {
-    // Only setup particles on desktop
     if (typeof particlesJS !== "undefined" && window.innerWidth > 672) {
       particlesJS("particles-js", {
         particles: {
@@ -70,26 +71,35 @@ class ChatRoom {
   }
 
   setupEventListeners() {
-    const sendBtn = document.getElementById("send-btn");
     const messageInput = document.getElementById("message-input");
     const copyBtn = document.getElementById("copy-btn");
-
-    if (sendBtn) {
-      sendBtn.addEventListener("click", () => this.sendMessage());
-    }
+    const actionBtn = document.getElementById("action-btn");
+    const imageInput = document.getElementById("image-input");
+    const imageModal = document.getElementById("image-modal");
+    const modalClose = document.querySelector(".image-modal-close");
+    const sendImageBtn = document.getElementById("send-image-btn");
+    const cancelImageBtn = document.getElementById("cancel-image-btn");
 
     if (copyBtn) {
       copyBtn.addEventListener("click", () => this.copyRoomCode());
     }
 
+    if (actionBtn) {
+      actionBtn.addEventListener("click", () => this.handleActionButton());
+    }
+
+    if (imageInput) {
+      imageInput.addEventListener("change", (e) => this.handleImageSelect(e));
+    }
+
     if (messageInput) {
+      messageInput.addEventListener("input", () => this.handleInputChange());
       messageInput.addEventListener("keypress", (e) => {
         if (e.key === "Enter") {
-          this.sendMessage();
+          this.handleActionButton();
         }
       });
 
-      // Auto-focus on mobile for better UX
       if (window.innerWidth <= 672) {
         setTimeout(() => {
           messageInput.focus();
@@ -99,7 +109,26 @@ class ChatRoom {
       }
     }
 
-    // Handle window resize to toggle particles
+    if (modalClose) {
+      modalClose.addEventListener("click", () => this.closeImageModal());
+    }
+
+    if (sendImageBtn) {
+      sendImageBtn.addEventListener("click", () => this.sendImageMessage());
+    }
+
+    if (cancelImageBtn) {
+      cancelImageBtn.addEventListener("click", () => this.closeImageModal());
+    }
+
+    if (imageModal) {
+      imageModal.addEventListener("click", (e) => {
+        if (e.target === imageModal) {
+          this.closeImageModal();
+        }
+      });
+    }
+
     window.addEventListener("resize", () => {
       this.handleResize();
     });
@@ -109,8 +138,40 @@ class ChatRoom {
     });
   }
 
+  handleInputChange() {
+    const messageInput = document.getElementById("message-input");
+    const actionBtn = document.getElementById("action-btn");
+    const imageIcon = document.getElementById("image-icon");
+    const sendIcon = document.getElementById("send-icon");
+
+    const hasText = messageInput.value.trim().length > 0;
+
+    if (hasText && !this.isSendMode) {
+      // Switch to send mode
+      this.isSendMode = true;
+      actionBtn.classList.add("send-mode");
+      actionBtn.title = "Send message";
+      imageIcon.style.display = "none";
+      sendIcon.style.display = "block";
+    } else if (!hasText && this.isSendMode) {
+      // Switch back to image mode
+      this.isSendMode = false;
+      actionBtn.classList.remove("send-mode");
+      actionBtn.title = "Upload Image";
+      imageIcon.style.display = "block";
+      sendIcon.style.display = "none";
+    }
+  }
+
+  handleActionButton() {
+    if (this.isSendMode) {
+      this.sendMessage();
+    } else {
+      document.getElementById("image-input").click();
+    }
+  }
+
   handleResize() {
-    // Re-initialize particles when switching between mobile and desktop
     const particlesContainer = document.getElementById("particles-js");
     if (window.innerWidth > 672 && particlesContainer.children.length === 0) {
       this.setupParticles();
@@ -168,14 +229,85 @@ class ChatRoom {
 
     this.socket.emit("send_message", { message });
     input.value = "";
+    this.handleInputChange(); // Reset button to image mode
 
-    // Keep focus on mobile for better UX
     if (window.innerWidth <= 672) {
       setTimeout(() => {
         input.focus();
       }, 100);
     } else {
       input.focus();
+    }
+  }
+
+  handleImageSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      alert("Please select a valid image file.");
+      return;
+    }
+
+    if (file.size > 8 * 1024 * 1024) {
+      alert("Image size must be less than 8MB.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      this.pendingImage = {
+        data: e.target.result,
+        file: file,
+      };
+      this.showImagePreview(e.target.result);
+    };
+    reader.readAsDataURL(file);
+
+    event.target.value = "";
+  }
+
+  showImagePreview(imageData) {
+    const modal = document.getElementById("image-modal");
+    const modalImg = document.getElementById("image-modal-img");
+
+    if (modal && modalImg) {
+      modalImg.src = imageData;
+      modal.style.display = "block";
+      document.body.style.overflow = "hidden";
+    }
+  }
+
+  closeImageModal() {
+    const modal = document.getElementById("image-modal");
+    if (modal) {
+      modal.style.display = "none";
+      document.body.style.overflow = "";
+      this.pendingImage = null;
+    }
+  }
+
+  sendImageMessage() {
+    if (!this.pendingImage) return;
+
+    const messageInput = document.getElementById("message-input");
+    const caption = messageInput.value.trim();
+
+    this.socket.emit("send_message", {
+      message: caption,
+      image: this.pendingImage.data,
+    });
+
+    messageInput.value = "";
+    this.closeImageModal();
+    this.handleInputChange(); // Reset button to image mode
+
+    if (window.innerWidth <= 672) {
+      setTimeout(() => {
+        messageInput.focus();
+      }, 100);
+    } else {
+      messageInput.focus();
     }
   }
 
@@ -199,6 +331,27 @@ class ChatRoom {
       minute: "2-digit",
     });
 
+    let imageHtml = "";
+    if (messageData.image) {
+      imageHtml = `
+        <div class="message-image-container">
+          <img src="data:image/jpeg;base64,${messageData.image}" 
+               alt="Shared image" 
+               class="message-image"
+               onclick="chatRoom.showFullImage('data:image/jpeg;base64,${
+                 messageData.image
+               }')">
+          ${
+            messageData.message && messageData.message !== "📷 Sent an image"
+              ? `<div class="message-image-caption">${this.escapeHtml(
+                  messageData.message
+                )}</div>`
+              : ""
+          }
+        </div>
+      `;
+    }
+
     messageElement.innerHTML = `
       ${
         showUsername
@@ -206,15 +359,36 @@ class ChatRoom {
           : '<div class="message-username"></div>'
       }
       <div class="message-bubble">
-        <div class="message-content">${this.escapeHtml(
-          messageData.message
-        )}</div>
+        ${messageData.image ? imageHtml : ""}
+        ${
+          !messageData.image
+            ? `<div class="message-content">${this.escapeHtml(
+                messageData.message
+              )}</div>`
+            : ""
+        }
         <div class="message-time">${time}</div>
       </div>
     `;
 
     container.appendChild(messageElement);
     container.scrollTop = container.scrollHeight;
+  }
+
+  showFullImage(imageSrc) {
+    const modal = document.getElementById("image-modal");
+    const modalImg = document.getElementById("image-modal-img");
+
+    if (modal && modalImg) {
+      modalImg.src = imageSrc;
+      modal.style.display = "block";
+      document.body.style.overflow = "hidden";
+
+      const actions = document.querySelector(".image-modal-actions");
+      if (actions) {
+        actions.style.display = "none";
+      }
+    }
   }
 
   displaySystemMessage(message) {
@@ -239,7 +413,6 @@ class ChatRoom {
     container.appendChild(messageElement);
     container.scrollTop = container.scrollHeight;
 
-    // Reset last sender for context change
     this.lastSender = null;
   }
 
@@ -269,7 +442,9 @@ class ChatRoom {
   }
 }
 
+let chatRoom;
+
 document.addEventListener("DOMContentLoaded", () => {
-  new ChatRoom();
+  chatRoom = new ChatRoom();
 });
 

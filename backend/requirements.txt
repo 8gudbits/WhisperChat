@@ -3,3 +3,4 @@ Flask-SocketIO
 Flask-CORS
 python-socketio
 python-engineio
+Pillow
