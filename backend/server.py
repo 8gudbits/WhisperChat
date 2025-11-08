@@ -15,7 +15,7 @@ from PIL import Image
 class Config:
     ###  Application Settings  ###
     APP_NAME = "WhisperChat"
-    VERSION = "2.0.0-rc3"
+    VERSION = "2.0.0-rc4"
     SECRET_KEY = os.getenv("SECRET_KEY", secrets.token_hex(24))
 
     ###  Server Settings  ###
@@ -33,7 +33,7 @@ class Config:
     MAX_IMAGE_SIZE = 8 * 1024 * 1024  # 8MB
     MAX_IMAGE_DIMENSION = 1200  # pixels
 
-    # ANSI colors for console output
+    ###  ANSI colors for console output  ###
     class Colors:
         AQUA = "\033[96m"
         GREEN = "\033[92m"

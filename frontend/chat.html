@@ -14,6 +14,29 @@
   <body>
     <div class="particles-container" id="particles-js"></div>
 
+    <div id="drag-drop-zone" class="drag-drop-zone">
+      <div class="drag-drop-content">
+        <svg
+          width="48"
+          height="48"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path
+            d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+          ></path>
+          <polyline points="14,2 14,8 20,8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10,9 9,9 8,9"></polyline>
+        </svg>
+        <h3>Drop images here to send</h3>
+        <p>You can select multiple images</p>
+      </div>
+    </div>
+
     <header class="chat-header">
       <div class="header-content">
         <h1>Whisper Chat</h1>
@@ -34,7 +57,7 @@
             id="message-input"
             placeholder="Type your message..."
           />
-          <button id="action-btn" class="btn-action" title="Upload Image">
+          <button id="action-btn" class="btn-action" title="Upload Images">
             <svg
               id="image-icon"
               width="20"
@@ -70,15 +93,19 @@
       type="file"
       id="image-input"
       accept="image/*"
+      multiple
       style="display: none"
     />
 
     <div id="image-modal" class="image-modal">
       <div class="image-modal-content">
         <span class="image-modal-close">&times;</span>
-        <img id="image-modal-img" src="" alt="Preview" />
+        <div class="image-preview-container" id="image-preview-container"></div>
+        <div class="image-counter" id="image-counter"></div>
         <div class="image-modal-actions">
-          <button id="send-image-btn" class="btn-send-image">Send Image</button>
+          <button id="send-image-btn" class="btn-send-image">
+            Send Images
+          </button>
           <button id="cancel-image-btn" class="btn-cancel-image">Cancel</button>
         </div>
       </div>
