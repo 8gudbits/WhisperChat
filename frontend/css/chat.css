@@ -342,7 +342,7 @@ body {
 /* Mobile Styles (672px and below) */
 @media (max-width: 672px) {
     body {
-        background: var(--bg-card);
+        background: var(--bg-primary);
     }
 
     .particles-container {
@@ -382,21 +382,26 @@ body {
     .chat-main {
         padding: 0;
         align-items: stretch;
+        height: 100vh;
     }
 
     .chat-container {
         max-width: 100%;
-        height: calc(100vh - 80px);
+        height: 100vh;
         border-radius: 0;
         border: none;
         box-shadow: none;
         background: var(--bg-primary);
+        display: flex;
+        flex-direction: column;
     }
 
     .messages-container {
         padding: 0.75rem;
         gap: 0.25rem;
         background: var(--bg-primary);
+        flex: 1;
+        min-height: 0;
     }
 
     .message {
@@ -415,6 +420,7 @@ body {
         position: sticky;
         bottom: 0;
         backdrop-filter: blur(10px);
+        flex-shrink: 0;
     }
 
     #message-input {
