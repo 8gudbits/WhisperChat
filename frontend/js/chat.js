@@ -9,6 +9,16 @@ class ChatRoom {
       this.lastSender = null;
       this.pendingImages = [];
       this.isSendMode = false;
+      this.imageZoom = {
+        scale: 1,
+        minScale: 0.1,
+        maxScale: 5,
+        lastX: 0,
+        lastY: 0,
+        isDragging: false,
+        offsetX: 0,
+        offsetY: 0,
+      };
       this.init();
     });
   }
@@ -24,6 +34,7 @@ class ChatRoom {
     this.setupEventListeners();
     this.setupSocketHandlers();
     this.setupDragAndDrop();
+    this.setupImageZoom();
     this.joinRoom();
   }
 
@@ -111,16 +122,26 @@ class ChatRoom {
     const actionBtn = document.getElementById("action-btn");
     const imageInput = document.getElementById("image-input");
     const imageModal = document.getElementById("image-modal");
-    const modalClose = document.querySelector(".image-modal-close");
+    const imagePreviewModal = document.getElementById("image-preview-modal");
+    const modalClose = document.querySelectorAll(".image-modal-close");
     const sendImageBtn = document.getElementById("send-image-btn");
     const cancelImageBtn = document.getElementById("cancel-image-btn");
 
     copyBtn.addEventListener("click", () => this.copyRoomCode());
     actionBtn.addEventListener("click", () => this.handleActionButton());
     imageInput.addEventListener("change", (e) => this.handleImageSelect(e));
-    modalClose.addEventListener("click", () => this.closeImageModal());
+
+    modalClose.forEach((closeBtn) => {
+      closeBtn.addEventListener("click", (e) => {
+        const modal = e.target.closest(".image-modal");
+        this.closeImageModal(modal);
+      });
+    });
+
     sendImageBtn.addEventListener("click", () => this.sendImageMessage());
-    cancelImageBtn.addEventListener("click", () => this.closeImageModal());
+    cancelImageBtn.addEventListener("click", () =>
+      this.closeImageModal(imagePreviewModal)
+    );
 
     messageInput.addEventListener("input", () => this.handleInputChange());
     messageInput.addEventListener("keypress", (e) => {
@@ -139,7 +160,13 @@ class ChatRoom {
 
     imageModal.addEventListener("click", (e) => {
       if (e.target === imageModal) {
-        this.closeImageModal();
+        this.closeImageModal(imageModal);
+      }
+    });
+
+    imagePreviewModal.addEventListener("click", (e) => {
+      if (e.target === imagePreviewModal) {
+        this.closeImageModal(imagePreviewModal);
       }
     });
 
@@ -150,6 +177,198 @@ class ChatRoom {
     window.addEventListener("beforeunload", () => {
       this.leaveRoom();
     });
+  }
+
+  setupImageZoom() {
+    const imageViewer = document.getElementById("image-viewer");
+    const zoomableImage = document.getElementById("image-modal-img");
+    const zoomInBtn = document.getElementById("zoom-in-btn");
+    const zoomOutBtn = document.getElementById("zoom-out-btn");
+    const resetZoomBtn = document.getElementById("reset-zoom-btn");
+    const downloadBtn = document.getElementById("download-btn");
+    const zoomLevel = document.getElementById("zoom-level");
+
+    if (!imageViewer || !zoomableImage) return;
+
+    const updateZoom = () => {
+      zoomableImage.style.transform = `translate(${this.imageZoom.offsetX}px, ${this.imageZoom.offsetY}px) scale(${this.imageZoom.scale})`;
+      zoomLevel.textContent = `${Math.round(this.imageZoom.scale * 100)}%`;
+    };
+
+    const resetZoom = () => {
+      this.imageZoom.scale = 1;
+      this.imageZoom.offsetX = 0;
+      this.imageZoom.offsetY = 0;
+      updateZoom();
+      imageViewer.classList.remove("grabbing");
+      this.imageZoom.isDragging = false;
+    };
+
+    zoomInBtn.addEventListener("click", () => {
+      if (this.imageZoom.scale < this.imageZoom.maxScale) {
+        this.imageZoom.scale = Math.min(
+          this.imageZoom.scale + 0.25,
+          this.imageZoom.maxScale
+        );
+        updateZoom();
+      }
+    });
+
+    zoomOutBtn.addEventListener("click", () => {
+      if (this.imageZoom.scale > this.imageZoom.minScale) {
+        this.imageZoom.scale = Math.max(
+          this.imageZoom.scale - 0.25,
+          this.imageZoom.minScale
+        );
+        updateZoom();
+      }
+    });
+
+    resetZoomBtn.addEventListener("click", resetZoom);
+
+    downloadBtn.addEventListener("click", () => {
+      const link = document.createElement("a");
+      link.download = "image.jpg";
+      link.href = zoomableImage.src;
+      link.click();
+    });
+
+    imageViewer.addEventListener("wheel", (e) => {
+      e.preventDefault();
+      const rect = imageViewer.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
+      const newScale = Math.max(
+        this.imageZoom.minScale,
+        Math.min(this.imageZoom.maxScale, this.imageZoom.scale * zoomFactor)
+      );
+
+      if (newScale !== this.imageZoom.scale) {
+        const scaleChange = newScale / this.imageZoom.scale;
+
+        this.imageZoom.offsetX =
+          mouseX - (mouseX - this.imageZoom.offsetX) * scaleChange;
+        this.imageZoom.offsetY =
+          mouseY - (mouseY - this.imageZoom.offsetY) * scaleChange;
+
+        this.imageZoom.scale = newScale;
+        updateZoom();
+      }
+    });
+
+    imageViewer.addEventListener("mousedown", (e) => {
+      if (this.imageZoom.scale > 1) {
+        e.preventDefault();
+        this.imageZoom.isDragging = true;
+        this.imageZoom.lastX = e.clientX;
+        this.imageZoom.lastY = e.clientY;
+        imageViewer.classList.add("grabbing");
+      }
+    });
+
+    document.addEventListener("mousemove", (e) => {
+      if (this.imageZoom.isDragging) {
+        const deltaX = e.clientX - this.imageZoom.lastX;
+        const deltaY = e.clientY - this.imageZoom.lastY;
+
+        this.imageZoom.offsetX += deltaX;
+        this.imageZoom.offsetY += deltaY;
+
+        this.imageZoom.lastX = e.clientX;
+        this.imageZoom.lastY = e.clientY;
+
+        updateZoom();
+      }
+    });
+
+    document.addEventListener("mouseup", () => {
+      if (this.imageZoom.isDragging) {
+        this.imageZoom.isDragging = false;
+        imageViewer.classList.remove("grabbing");
+      }
+    });
+
+    imageViewer.addEventListener("touchstart", (e) => {
+      if (this.imageZoom.scale > 1 && e.touches.length === 1) {
+        e.preventDefault();
+        this.imageZoom.isDragging = true;
+        this.imageZoom.lastX = e.touches[0].clientX;
+        this.imageZoom.lastY = e.touches[0].clientY;
+        imageViewer.classList.add("grabbing");
+      } else if (e.touches.length === 2) {
+        e.preventDefault();
+        const touch1 = e.touches[0];
+        const touch2 = e.touches[1];
+        this.imageZoom.lastTouchDistance = Math.hypot(
+          touch1.clientX - touch2.clientX,
+          touch1.clientY - touch2.clientY
+        );
+      }
+    });
+
+    imageViewer.addEventListener("touchmove", (e) => {
+      if (this.imageZoom.isDragging && e.touches.length === 1) {
+        e.preventDefault();
+        const deltaX = e.touches[0].clientX - this.imageZoom.lastX;
+        const deltaY = e.touches[0].clientY - this.imageZoom.lastY;
+
+        this.imageZoom.offsetX += deltaX;
+        this.imageZoom.offsetY += deltaY;
+
+        this.imageZoom.lastX = e.touches[0].clientX;
+        this.imageZoom.lastY = e.touches[0].clientY;
+
+        updateZoom();
+      } else if (e.touches.length === 2) {
+        e.preventDefault();
+        const touch1 = e.touches[0];
+        const touch2 = e.touches[1];
+        const touchDistance = Math.hypot(
+          touch1.clientX - touch2.clientX,
+          touch1.clientY - touch2.clientY
+        );
+
+        if (this.imageZoom.lastTouchDistance) {
+          const zoomFactor = touchDistance / this.imageZoom.lastTouchDistance;
+          const newScale = Math.max(
+            this.imageZoom.minScale,
+            Math.min(this.imageZoom.maxScale, this.imageZoom.scale * zoomFactor)
+          );
+
+          if (newScale !== this.imageZoom.scale) {
+            const rect = imageViewer.getBoundingClientRect();
+            const centerX = (touch1.clientX + touch2.clientX) / 2 - rect.left;
+            const centerY = (touch1.clientY + touch2.clientY) / 2 - rect.top;
+
+            const scaleChange = newScale / this.imageZoom.scale;
+            this.imageZoom.offsetX =
+              centerX - (centerX - this.imageZoom.offsetX) * scaleChange;
+            this.imageZoom.offsetY =
+              centerY - (centerY - this.imageZoom.offsetY) * scaleChange;
+
+            this.imageZoom.scale = newScale;
+            updateZoom();
+          }
+
+          this.imageZoom.lastTouchDistance = touchDistance;
+        }
+      }
+    });
+
+    imageViewer.addEventListener("touchend", (e) => {
+      if (e.touches.length === 0) {
+        this.imageZoom.isDragging = false;
+        this.imageZoom.lastTouchDistance = null;
+        imageViewer.classList.remove("grabbing");
+      } else if (e.touches.length === 1) {
+        this.imageZoom.lastX = e.touches[0].clientX;
+        this.imageZoom.lastY = e.touches[0].clientY;
+      }
+    });
+
+    resetZoom();
   }
 
   handleInputChange() {
@@ -298,7 +517,7 @@ class ChatRoom {
   }
 
   showImagePreviews() {
-    const modal = document.getElementById("image-modal");
+    const modal = document.getElementById("image-preview-modal");
     const previewContainer = document.getElementById("image-preview-container");
     const imageCounter = document.getElementById("image-counter");
 
@@ -335,12 +554,36 @@ class ChatRoom {
     document.body.style.overflow = "hidden";
   }
 
-  closeImageModal() {
-    const modal = document.getElementById("image-modal");
+  closeImageModal(modal) {
     if (modal) {
       modal.style.display = "none";
       document.body.style.overflow = "";
-      this.pendingImages = [];
+      if (modal.id === "image-preview-modal") {
+        this.pendingImages = [];
+      } else if (modal.id === "image-modal") {
+        this.resetImageZoom();
+      }
+    }
+  }
+
+  resetImageZoom() {
+    this.imageZoom.scale = 1;
+    this.imageZoom.offsetX = 0;
+    this.imageZoom.offsetY = 0;
+    this.imageZoom.isDragging = false;
+
+    const zoomableImage = document.getElementById("image-modal-img");
+    const imageViewer = document.getElementById("image-viewer");
+    const zoomLevel = document.getElementById("zoom-level");
+
+    if (zoomableImage) {
+      zoomableImage.style.transform = "translate(0, 0) scale(1)";
+    }
+    if (imageViewer) {
+      imageViewer.classList.remove("grabbing");
+    }
+    if (zoomLevel) {
+      zoomLevel.textContent = "100%";
     }
   }
 
@@ -360,7 +603,7 @@ class ChatRoom {
     });
 
     messageInput.value = "";
-    this.closeImageModal();
+    this.closeImageModal(document.getElementById("image-preview-modal"));
     this.handleInputChange();
 
     if (window.innerWidth <= 672) {
@@ -437,16 +680,12 @@ class ChatRoom {
   showFullImage(imageSrc) {
     const modal = document.getElementById("image-modal");
     const modalImg = document.getElementById("image-modal-img");
-    const previewContainer = document.getElementById("image-preview-container");
-    const actions = document.querySelector(".image-modal-actions");
 
     if (modal && modalImg) {
       modalImg.src = imageSrc;
       modal.style.display = "block";
       document.body.style.overflow = "hidden";
-
-      if (previewContainer) previewContainer.style.display = "none";
-      if (actions) actions.style.display = "none";
+      this.resetImageZoom();
     }
   }
 
