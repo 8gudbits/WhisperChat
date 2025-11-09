@@ -835,43 +835,52 @@ class ChatRoom {
         : `data:image/jpeg;base64,${messageData.image}`;
 
       imageHtml = `
-        <div class="message-image-container">
-          <img src="${imageSrc}" 
-               alt="Shared image" 
-               class="message-image"
-               onclick="chatRoom.showFullImageFromMessage('${imageSrc}', this)">
-          ${
-            messageData.message && messageData.message !== "Sent an image"
-              ? `<div class="message-image-caption">${this.escapeHtml(
-                  messageData.message
-                )}</div>`
-              : ""
-          }
-        </div>
-      `;
+              <div class="message-image-container">
+                  <img src="${imageSrc}" 
+                      alt="Shared image" 
+                      class="message-image"
+                      onclick="chatRoom.showFullImageFromMessage('${imageSrc}', this)">
+                  ${
+                    messageData.message &&
+                    messageData.message !== "Sent an image"
+                      ? `<div class="message-image-caption">${this.escapeHtml(
+                          messageData.message
+                        )}</div>`
+                      : ""
+                  }
+              </div>
+          `;
     }
 
+    const linkifiedMessage = this.linkify(messageData.message);
+
     messageElement.innerHTML = `
-      ${
-        showUsername
-          ? `<div class="message-username show">${messageData.username}</div>`
-          : '<div class="message-username"></div>'
-      }
-      <div class="message-bubble">
-        ${messageData.image ? imageHtml : ""}
-        ${
-          !messageData.image
-            ? `<div class="message-content">${this.escapeHtml(
-                messageData.message
-              )}</div>`
-            : ""
-        }
-        <div class="message-time">${time}</div>
-      </div>
-    `;
+          ${
+            showUsername
+              ? `<div class="message-username show">${messageData.username}</div>`
+              : '<div class="message-username"></div>'
+          }
+          <div class="message-bubble">
+              ${messageData.image ? imageHtml : ""}
+              ${
+                !messageData.image
+                  ? `<div class="message-content">${linkifiedMessage}</div>`
+                  : ""
+              }
+              <div class="message-time">${time}</div>
+          </div>
+      `;
 
     container.appendChild(messageElement);
     container.scrollTop = container.scrollHeight;
+  }
+
+  linkify(text) {
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    return this.escapeHtml(text).replace(
+      urlRegex,
+      '<a href="$1" target="_blank" rel="noopener noreferrer" class="message-link">$1</a>'
+    );
   }
 
   showFullImageFromMessage(imageSrc, clickedImage) {

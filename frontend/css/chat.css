@@ -279,6 +279,17 @@ button.btn-send-image {
     color: var(--text-secondary);
 }
 
+.message-link {
+    color: #FFFFFF;
+    text-decoration: underline;
+    word-break: break-all;
+}
+
+.message-link:hover {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+}
+
 .btn-action {
     background: transparent;
     color: var(--text-secondary);
