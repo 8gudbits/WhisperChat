@@ -1,4 +1,4 @@
-import os, secrets, random, threading, base64
+import os, secrets, random, threading, base64, logging
 from logging.config import dictConfig
 from flask import Flask, request, jsonify, abort
 from flask_socketio import SocketIO, emit, join_room, leave_room
@@ -13,6 +13,8 @@ from PIL import Image
 #  CONFIGURATION - Edit values to customize the server  #
 # ===================================================== #
 class Config:
+    """Server configuration settings"""
+
     ###  Application Settings  ###
     APP_NAME = "WhisperChat"
     VERSION = "2.0.0-rc5"
@@ -22,14 +24,15 @@ class Config:
     HOST = os.getenv("HOST", "0.0.0.0")
     PORT = int(os.getenv("PORT", 8080))
 
-    ### CORS Settings  ###
-    ORIGINS = ["*"]  # Allow all origins; modify as needed
+    ###  CORS Settings  ###
+    ## Allow all origins; modify as needed
+    ORIGINS = ["*"]
 
-    ### Room Settings  ###
+    ###  Room Settings  ###
     ROOM_CODE_LENGTH = 6
     ROOM_CLEANUP_DELAY = 120.0  # in seconds (2 minutes)
 
-    ### Image Settings ###
+    ###  Image Settings  ###
     MAX_IMAGE_SIZE = 50 * 1024 * 1024  # 50MB
     ALLOWED_IMAGE_FORMATS = ["JPEG", "PNG", "GIF", "WEBP"]
 
@@ -44,6 +47,8 @@ class Config:
 #  CHAT SERVER IMPLEMENTATION  #
 # ============================ #
 class ChatServer:
+    """Main chat server implementation"""
+
     def __init__(self, host=None, port=None):
         self.app = Flask(f"{Config.APP_NAME}-API")
         self.app.config["SECRET_KEY"] = Config.SECRET_KEY
@@ -60,13 +65,14 @@ class ChatServer:
         self.rooms = {}
         self.user_sessions = {}
         self.room_cleanup_timers = {}
+        self.logger = logging.getLogger(__name__)
 
         self._setup_logging()
         self._setup_routes()
         self._setup_socket_handlers()
 
     def _generate_room_code(self, length=None):
-        """Generate a unique room code"""
+        """Generate unique room code"""
         length = length or Config.ROOM_CODE_LENGTH
         while True:
             code = "".join(random.choices(ascii_uppercase, k=length))
@@ -74,7 +80,7 @@ class ChatServer:
                 return code
 
     def _validate_image(self, image_data):
-        """Validate image format only - no processing"""
+        """Validate image format and size"""
         try:
             if "," in image_data:
                 image_data = image_data.split(",")[1]
@@ -95,7 +101,7 @@ class ChatServer:
                         f"Unsupported image format: {image.format}. Allowed: {', '.join(Config.ALLOWED_IMAGE_FORMATS)}",
                     )
             except Exception as img_error:
-                print(f"Image format check warning: {img_error}")
+                self.logger.warning(f"Image format check warning: {img_error}")
                 pass
 
             return image_data, None
@@ -104,6 +110,7 @@ class ChatServer:
             return None, f"Invalid image: {str(e)}"
 
     def _setup_logging(self):
+        """Configure application logging"""
         dictConfig(
             {
                 "version": 1,
@@ -124,8 +131,11 @@ class ChatServer:
         )
 
     def _setup_routes(self):
+        """Setup Flask API routes"""
+
         @self.app.route("/api/serverinfo", methods=["GET"])
         def server_info():
+            """Get server information"""
             allowed_host = f"localhost:{Config.PORT}"
             if request.host != allowed_host:
                 abort(403, description="Invalid Host Header")
@@ -139,6 +149,7 @@ class ChatServer:
 
         @self.app.route("/api/rooms", methods=["POST"])
         def create_room():
+            """Create a new chat room"""
             data = request.get_json()
             username = data.get("username")
 
@@ -157,24 +168,26 @@ class ChatServer:
                 self.room_cleanup_timers[room_code].cancel()
                 del self.room_cleanup_timers[room_code]
 
+            self.logger.info(f"Room created: {room_code}")
             return jsonify(
                 {"room_code": room_code, "message": "Room created successfully"}
             )
 
         @self.app.route("/api/rooms/<room_code>/exists", methods=["GET"])
         def check_room(room_code):
+            """Check if room exists"""
             exists = room_code in self.rooms
             return jsonify({"exists": exists})
 
     def _schedule_room_cleanup(self, room_code):
-        """Schedule room cleanup after delay of being empty"""
+        """Schedule room cleanup after delay"""
         if room_code in self.room_cleanup_timers:
             self.room_cleanup_timers[room_code].cancel()
 
         def cleanup():
             if room_code in self.rooms and self.rooms[room_code]["members"] == 0:
                 del self.rooms[room_code]
-                print(
+                self.logger.info(
                     f"Room {room_code} cleaned up after being empty for {Config.ROOM_CLEANUP_DELAY} seconds"
                 )
             if room_code in self.room_cleanup_timers:
@@ -186,14 +199,18 @@ class ChatServer:
         self.room_cleanup_timers[room_code] = timer
 
     def _setup_socket_handlers(self):
+        """Setup Socket.IO event handlers"""
+
         @self.socketio.on("connect")
         def handle_connect():
-            print(f"Client connected: {request.sid}")
+            """Handle client connection"""
+            self.logger.info(f"Client connected: {request.sid}")
             self.user_sessions[request.sid] = {}
 
         @self.socketio.on("disconnect")
         def handle_disconnect():
-            print(f"Client disconnected: {request.sid}")
+            """Handle client disconnection"""
+            self.logger.info(f"Client disconnected: {request.sid}")
             if request.sid in self.user_sessions:
                 session_data = self.user_sessions[request.sid]
                 room_code = session_data.get("room_code")
@@ -220,6 +237,7 @@ class ChatServer:
 
         @self.socketio.on("join")
         def handle_join(data):
+            """Handle user joining room"""
             room_code = data.get("room_code")
             username = data.get("username")
 
@@ -234,7 +252,7 @@ class ChatServer:
             if room_code in self.room_cleanup_timers:
                 self.room_cleanup_timers[room_code].cancel()
                 del self.room_cleanup_timers[room_code]
-                print(f"Room {room_code} cleanup cancelled - user rejoined")
+                self.logger.info(f"Room {room_code} cleanup cancelled - user rejoined")
 
             self.user_sessions[request.sid] = {
                 "room_code": room_code,
@@ -257,10 +275,11 @@ class ChatServer:
 
             emit("message_history", {"messages": self.rooms[room_code]["messages"]})
 
-            print(f"{username} joined room {room_code}")
+            self.logger.info(f"{username} joined room {room_code}")
 
         @self.socketio.on("leave")
         def handle_leave():
+            """Handle user leaving room"""
             if request.sid in self.user_sessions:
                 session_data = self.user_sessions[request.sid]
                 room_code = session_data.get("room_code")
@@ -284,12 +303,13 @@ class ChatServer:
                             to=room_code,
                         )
 
-                    print(f"{username} left room {room_code}")
+                    self.logger.info(f"{username} left room {room_code}")
 
                 del self.user_sessions[request.sid]
 
         @self.socketio.on("send_message")
         def handle_message(data):
+            """Handle sending messages"""
             if request.sid not in self.user_sessions:
                 emit("error", {"message": "Not in a room"})
                 return
@@ -326,18 +346,18 @@ class ChatServer:
                     message_data["message"] = "Sent an image"
 
             self.rooms[room_code]["messages"].append(message_data)
-
             emit("new_message", message_data, to=room_code)
 
             log_message = f"Message from {username} in {room_code}"
             if image_data:
                 log_message += " (with image)"
-            print(log_message)
+            self.logger.info(log_message)
 
     def start(self, debug=False):
+        """Start the chat server"""
         start_time = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
         print(
-            f"{Config.Colors.GREEN}{start_time}{Config.Colors.RESET} {Config.APP_NAME} v{Config.VERSION}"
+            f"{Config.Colors.GREEN}{start_time} {Config.Colors.AQUA}{Config.APP_NAME}{Config.Colors.GREEN} v{Config.VERSION}"
         )
         print(
             f"Server starting on {Config.Colors.AQUA}http://{self.host}:{self.port}{Config.Colors.RESET}"
