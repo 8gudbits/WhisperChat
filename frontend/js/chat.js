@@ -9,9 +9,10 @@ class ChatRoom {
       this.lastSender = null;
       this.pendingImages = [];
       this.isSendMode = false;
+      this.previewPage = 0;
       this.imageZoom = {
         scale: 1,
-        minScale: 0.1,
+        minScale: 0.5,
         maxScale: 5,
         lastX: 0,
         lastY: 0,
@@ -19,6 +20,8 @@ class ChatRoom {
         offsetX: 0,
         offsetY: 0,
       };
+      this.currentImageIndex = 0;
+      this.currentImageSet = [];
       this.init();
     });
   }
@@ -177,6 +180,19 @@ class ChatRoom {
     window.addEventListener("beforeunload", () => {
       this.leaveRoom();
     });
+
+    document.addEventListener("keydown", (e) => {
+      const imageModal = document.getElementById("image-modal");
+      if (imageModal.style.display === "block") {
+        if (e.key === "ArrowLeft") {
+          this.previousImage();
+        } else if (e.key === "ArrowRight") {
+          this.nextImage();
+        } else if (e.key === "Escape") {
+          this.closeImageModal(imageModal);
+        }
+      }
+    });
   }
 
   setupImageZoom() {
@@ -187,12 +203,43 @@ class ChatRoom {
     const resetZoomBtn = document.getElementById("reset-zoom-btn");
     const downloadBtn = document.getElementById("download-btn");
     const zoomLevel = document.getElementById("zoom-level");
+    const prevBtn = document.getElementById("prev-image-btn");
+    const nextBtn = document.getElementById("next-image-btn");
 
     if (!imageViewer || !zoomableImage) return;
+
+    const constrainOffsets = () => {
+      if (!zoomableImage.parentElement) return;
+
+      const containerRect = imageViewer.getBoundingClientRect();
+      const imageRect = zoomableImage.getBoundingClientRect();
+
+      const maxOffsetX = Math.max(
+        0,
+        (imageRect.width - containerRect.width) / 2
+      );
+      const minOffsetX = -maxOffsetX;
+      const maxOffsetY = Math.max(
+        0,
+        (imageRect.height - containerRect.height) / 2
+      );
+      const minOffsetY = -maxOffsetY;
+
+      this.imageZoom.offsetX = Math.max(
+        minOffsetX,
+        Math.min(maxOffsetX, this.imageZoom.offsetX)
+      );
+      this.imageZoom.offsetY = Math.max(
+        minOffsetY,
+        Math.min(maxOffsetY, this.imageZoom.offsetY)
+      );
+    };
 
     const updateZoom = () => {
       zoomableImage.style.transform = `translate(${this.imageZoom.offsetX}px, ${this.imageZoom.offsetY}px) scale(${this.imageZoom.scale})`;
       zoomLevel.textContent = `${Math.round(this.imageZoom.scale * 100)}%`;
+
+      constrainOffsets();
     };
 
     const resetZoom = () => {
@@ -210,6 +257,14 @@ class ChatRoom {
           this.imageZoom.scale + 0.25,
           this.imageZoom.maxScale
         );
+
+        const oldScale = this.imageZoom.scale - 0.25;
+        if (oldScale > 0) {
+          const scaleRatio = this.imageZoom.scale / oldScale;
+          this.imageZoom.offsetX *= scaleRatio;
+          this.imageZoom.offsetY *= scaleRatio;
+        }
+
         updateZoom();
       }
     });
@@ -220,6 +275,14 @@ class ChatRoom {
           this.imageZoom.scale - 0.25,
           this.imageZoom.minScale
         );
+
+        const oldScale = this.imageZoom.scale + 0.25;
+        if (oldScale > 0) {
+          const scaleRatio = this.imageZoom.scale / oldScale;
+          this.imageZoom.offsetX *= scaleRatio;
+          this.imageZoom.offsetY *= scaleRatio;
+        }
+
         updateZoom();
       }
     });
@@ -233,6 +296,13 @@ class ChatRoom {
       link.click();
     });
 
+    if (prevBtn) {
+      prevBtn.addEventListener("click", () => this.previousImage());
+    }
+    if (nextBtn) {
+      nextBtn.addEventListener("click", () => this.nextImage());
+    }
+
     imageViewer.addEventListener("wheel", (e) => {
       e.preventDefault();
       const rect = imageViewer.getBoundingClientRect();
@@ -240,6 +310,7 @@ class ChatRoom {
       const mouseY = e.clientY - rect.top;
 
       const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
+      const oldScale = this.imageZoom.scale;
       const newScale = Math.max(
         this.imageZoom.minScale,
         Math.min(this.imageZoom.maxScale, this.imageZoom.scale * zoomFactor)
@@ -371,6 +442,52 @@ class ChatRoom {
     resetZoom();
   }
 
+  previousImage() {
+    if (this.currentImageSet.length <= 1) return;
+
+    this.currentImageIndex =
+      (this.currentImageIndex - 1 + this.currentImageSet.length) %
+      this.currentImageSet.length;
+    this.showImageAtIndex(this.currentImageIndex);
+  }
+
+  nextImage() {
+    if (this.currentImageSet.length <= 1) return;
+
+    this.currentImageIndex =
+      (this.currentImageIndex + 1) % this.currentImageSet.length;
+    this.showImageAtIndex(this.currentImageIndex);
+  }
+
+  showImageAtIndex(index) {
+    const modalImg = document.getElementById("image-modal-img");
+    const imageCounter = document.getElementById("image-counter");
+    const prevBtn = document.getElementById("prev-image-btn");
+    const nextBtn = document.getElementById("next-image-btn");
+
+    if (modalImg && this.currentImageSet[index]) {
+      modalImg.src = this.currentImageSet[index];
+      this.currentImageIndex = index;
+
+      if (imageCounter) {
+        imageCounter.textContent = `${index + 1} / ${
+          this.currentImageSet.length
+        }`;
+      }
+
+      if (prevBtn) {
+        prevBtn.style.display =
+          this.currentImageSet.length > 1 ? "flex" : "none";
+      }
+      if (nextBtn) {
+        nextBtn.style.display =
+          this.currentImageSet.length > 1 ? "flex" : "none";
+      }
+
+      this.resetImageZoom();
+    }
+  }
+
   handleInputChange() {
     const messageInput = document.getElementById("message-input");
     const actionBtn = document.getElementById("action-btn");
@@ -475,12 +592,14 @@ class ChatRoom {
     const files = Array.from(event.target.files);
     if (files.length === 0) return;
 
-    const validImageFiles = files.filter(
-      (file) => file.type.startsWith("image/") && file.size <= 8 * 1024 * 1024
+    const validImageFiles = files.filter((file) =>
+      file.type.startsWith("image/")
     );
 
     if (validImageFiles.length === 0) {
-      alert("Please select valid image files (max 8MB each).");
+      alert(
+        "Please select valid image files (JPEG, PNG, GIF, WEBP, SVG, AVIF)."
+      );
       return;
     }
 
@@ -519,21 +638,42 @@ class ChatRoom {
   showImagePreviews() {
     const modal = document.getElementById("image-preview-modal");
     const previewContainer = document.getElementById("image-preview-container");
-    const imageCounter = document.getElementById("image-counter");
+    const navContainer = document.getElementById("image-preview-nav");
 
     if (!modal || !previewContainer) return;
 
+    if (this.pendingImages.length === 0) {
+      this.closeImageModal(modal);
+      return;
+    }
+
+    this.previewPage = this.previewPage || 0;
+    const imagesPerPage = 1;
+    const totalPages = Math.ceil(this.pendingImages.length / imagesPerPage);
+    const startIndex = this.previewPage * imagesPerPage;
+    const endIndex = Math.min(
+      startIndex + imagesPerPage,
+      this.pendingImages.length
+    );
+    const currentPageImages = this.pendingImages.slice(startIndex, endIndex);
+
     previewContainer.innerHTML = "";
 
-    this.pendingImages.forEach((imageData, index) => {
+    const container = document.createElement("div");
+    container.className = "image-preview-container";
+
+    currentPageImages.forEach((imageData, index) => {
+      const globalIndex = startIndex + index;
       const previewItem = document.createElement("div");
       previewItem.className = "image-preview-item";
       previewItem.innerHTML = `
-        <img src="${imageData.data}" alt="Preview ${index + 1}">
-        <button class="image-preview-remove" data-index="${index}">×</button>
+        <img src="${imageData.data}" alt="Preview ${globalIndex + 1}">
+        <button class="image-preview-remove" data-index="${globalIndex}">×</button>
       `;
-      previewContainer.appendChild(previewItem);
+      container.appendChild(previewItem);
     });
+
+    previewContainer.appendChild(container);
 
     const removeButtons = previewContainer.querySelectorAll(
       ".image-preview-remove"
@@ -542,13 +682,65 @@ class ChatRoom {
       button.addEventListener("click", (e) => {
         const index = parseInt(e.target.getAttribute("data-index"));
         this.pendingImages.splice(index, 1);
+
+        if (
+          this.previewPage > 0 &&
+          this.pendingImages.length <= this.previewPage * imagesPerPage
+        ) {
+          this.previewPage = Math.max(0, this.previewPage - 1);
+        }
+
         this.showImagePreviews();
       });
     });
 
-    imageCounter.textContent = `${this.pendingImages.length} image${
-      this.pendingImages.length !== 1 ? "s" : ""
-    } selected`;
+    if (navContainer) {
+      if (totalPages > 1) {
+        navContainer.innerHTML = `
+          <button class="nav-btn prev-btn ${
+            this.previewPage === 0 ? "disabled" : ""
+          }" 
+                  ${this.previewPage === 0 ? "disabled" : ""}>
+            ←
+          </button>
+          <span class="page-indicator">${
+            this.previewPage + 1
+          } / ${totalPages}</span>
+          <button class="nav-btn next-btn ${
+            this.previewPage === totalPages - 1 ? "disabled" : ""
+          }" 
+                  ${this.previewPage === totalPages - 1 ? "disabled" : ""}>
+            →
+          </button>
+        `;
+
+        const prevBtn = navContainer.querySelector(".prev-btn");
+        const nextBtn = navContainer.querySelector(".next-btn");
+
+        if (prevBtn) {
+          prevBtn.addEventListener("click", () => {
+            if (this.previewPage > 0) {
+              this.previewPage--;
+              this.showImagePreviews();
+            }
+          });
+        }
+
+        if (nextBtn) {
+          nextBtn.addEventListener("click", () => {
+            if (this.previewPage < totalPages - 1) {
+              this.previewPage++;
+              this.showImagePreviews();
+            }
+          });
+        }
+
+        navContainer.style.display = "flex";
+      } else {
+        navContainer.style.display = "none";
+        navContainer.innerHTML = "";
+      }
+    }
 
     modal.style.display = "block";
     document.body.style.overflow = "hidden";
@@ -560,8 +752,11 @@ class ChatRoom {
       document.body.style.overflow = "";
       if (modal.id === "image-preview-modal") {
         this.pendingImages = [];
+        this.previewPage = 0;
       } else if (modal.id === "image-modal") {
         this.resetImageZoom();
+        this.currentImageSet = [];
+        this.currentImageIndex = 0;
       }
     }
   }
@@ -635,14 +830,16 @@ class ChatRoom {
 
     let imageHtml = "";
     if (messageData.image) {
+      const imageSrc = messageData.image.startsWith("data:")
+        ? messageData.image
+        : `data:image/jpeg;base64,${messageData.image}`;
+
       imageHtml = `
         <div class="message-image-container">
-          <img src="data:image/jpeg;base64,${messageData.image}" 
+          <img src="${imageSrc}" 
                alt="Shared image" 
                class="message-image"
-               onclick="chatRoom.showFullImage('data:image/jpeg;base64,${
-                 messageData.image
-               }')">
+               onclick="chatRoom.showFullImageFromMessage('${imageSrc}', this)">
           ${
             messageData.message && messageData.message !== "Sent an image"
               ? `<div class="message-image-caption">${this.escapeHtml(
@@ -677,16 +874,65 @@ class ChatRoom {
     container.scrollTop = container.scrollHeight;
   }
 
-  showFullImage(imageSrc) {
+  showFullImageFromMessage(imageSrc, clickedImage) {
+    const messagesContainer = document.getElementById("messages-container");
+    const allImages = [];
+    const messageElements = messagesContainer.querySelectorAll(".message");
+
+    messageElements.forEach((messageElement) => {
+      const images = messageElement.querySelectorAll(".message-image");
+      images.forEach((img) => {
+        allImages.push(img.src);
+      });
+    });
+
+    const startIndex = allImages.findIndex((src) => src === imageSrc);
+
+    if (startIndex !== -1) {
+      this.showFullImageWithNavigation(imageSrc, allImages, startIndex);
+    } else {
+      this.showFullImageWithNavigation(imageSrc, [imageSrc], 0);
+    }
+  }
+
+  showFullImageWithNavigation(imageSrc, imageSet, startIndex = 0) {
     const modal = document.getElementById("image-modal");
     const modalImg = document.getElementById("image-modal-img");
 
     if (modal && modalImg) {
+      this.currentImageSet = imageSet;
+      this.currentImageIndex = startIndex;
+
       modalImg.src = imageSrc;
       modal.style.display = "block";
       document.body.style.overflow = "hidden";
+
       this.resetImageZoom();
+      this.updateImageNavigation();
     }
+  }
+
+  updateImageNavigation() {
+    const imageCounter = document.getElementById("image-counter");
+    const prevBtn = document.getElementById("prev-image-btn");
+    const nextBtn = document.getElementById("next-image-btn");
+
+    if (imageCounter) {
+      imageCounter.textContent = `${this.currentImageIndex + 1} / ${
+        this.currentImageSet.length
+      }`;
+    }
+
+    if (prevBtn) {
+      prevBtn.style.display = this.currentImageSet.length > 1 ? "flex" : "none";
+    }
+    if (nextBtn) {
+      nextBtn.style.display = this.currentImageSet.length > 1 ? "flex" : "none";
+    }
+  }
+
+  showFullImage(imageSrc) {
+    this.showFullImageWithNavigation(imageSrc, [imageSrc], 0);
   }
 
   displaySystemMessage(message) {

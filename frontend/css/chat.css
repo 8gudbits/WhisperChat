@@ -30,6 +30,11 @@ body {
     line-height: 1.6;
 }
 
+button.btn-cancel-image,
+button.btn-send-image {
+    min-width: 120px;
+}
+
 .particles-container {
     position: fixed;
     width: 100%;
@@ -89,7 +94,7 @@ body {
 
 .chat-header {
     background: var(--bg-card);
-    padding: 1rem 2rem;
+    padding: 0.5rem 2rem;
     border-bottom: 1px solid var(--border-color);
     box-shadow: var(--shadow);
 }
@@ -346,28 +351,27 @@ body {
 .image-modal-content {
     position: relative;
     margin: auto;
-    padding: 20px;
+    padding: 3rem;
     width: 100%;
     height: 100%;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
+    justify-content: space-between;
 }
 
 .image-modal-close {
     position: absolute;
     top: 20px;
-    right: 30px;
+    right: 20px;
     color: white;
-    font-size: 3rem;
-    font-weight: bold;
+    font-size: 1.5rem;
     cursor: pointer;
     z-index: 1001;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.7);
+    border: none;
     border-radius: 50%;
-    width: 50px;
-    height: 50px;
+    width: 40px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -375,8 +379,39 @@ body {
 }
 
 .image-modal-close:hover {
-    background: rgba(0, 0, 0, 0.8);
+    background: var(--accent-primary);
     transform: scale(1.1);
+}
+
+.image-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.7);
+    border: none;
+    color: white;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 1001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    width: 40px;
+    height: 40px;
+}
+
+.image-nav-btn:hover {
+    background: var(--accent-primary);
+    transform: translateY(-50%) scale(1.1);
+}
+
+.image-nav-prev {
+    left: 20px;
+}
+
+.image-nav-next {
+    right: 20px;
 }
 
 .image-viewer-container {
@@ -416,14 +451,14 @@ body {
 
 .image-viewer-controls {
     position: absolute;
-    bottom: 30px;
+    bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
-    gap: 10px;
+    gap: 8px;
     background: rgba(0, 0, 0, 0.7);
-    padding: 15px;
-    border-radius: 25px;
+    padding: 12px;
+    border-radius: 20px;
     backdrop-filter: blur(10px);
     z-index: 1001;
 }
@@ -432,7 +467,7 @@ body {
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
     color: white;
-    padding: 12px;
+    padding: 10px;
     border-radius: 50%;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -447,41 +482,55 @@ body {
 }
 
 .image-viewer-info {
+    display: flex;
+    justify-content: space-between;
     position: absolute;
-    top: 30px;
+    top: 20px;
     left: 50%;
     transform: translateX(-50%);
     background: rgba(0, 0, 0, 0.7);
     color: white;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 0.9rem;
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 0.8rem;
     backdrop-filter: blur(10px);
     z-index: 1001;
+    min-width: 70px;
+    text-align: center;
+    gap: 12px;
 }
 
 .image-preview-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 400px;
     max-height: 400px;
-    overflow-y: auto;
-    margin-bottom: 1rem;
-    padding: 1rem;
-    background: var(--bg-secondary);
-    border-radius: 8px;
+    margin: 0 auto;
+    padding: 0.5rem;
+    flex: 1;
+    justify-content: center;
 }
 
 .image-preview-item {
     position: relative;
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    transition: transform 0.2s ease;
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto;
+}
+
+.image-preview-item:hover {
+    transform: scale(1.02);
 }
 
 .image-preview-item img {
     width: 100%;
-    height: 120px;
+    height: 220px;
     object-fit: cover;
     display: block;
 }
@@ -497,49 +546,89 @@ body {
     width: 24px;
     height: 24px;
     cursor: pointer;
-    font-size: 12px;
+    font-size: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.image-preview-remove:hover {
+    background: #dc2626;
+    transform: scale(1.1);
+}
+
+.image-preview-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    margin: 10px 0;
+    padding: 0 1rem;
+}
+
+.nav-btn {
+    background: var(--accent-primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.nav-btn:hover:not(.disabled) {
+    background: #5a5cd8;
+    transform: scale(1.05);
+}
+
+.nav-btn.disabled {
+    background: var(--text-muted);
+    cursor: not-allowed;
+    opacity: 0.5;
+    transform: none;
+}
+
+.page-indicator {
+    font-size: 14px;
+    color: var(--text-secondary);
+    font-weight: 500;
+    min-width: 80px;
+    text-align: center;
+}
+
+.image-modal-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 0.5rem 1rem;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.image-modal-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.5rem 1rem;
+    flex-shrink: 0;
 }
 
 .image-counter {
     text-align: center;
     color: var(--text-secondary);
     font-size: 0.9rem;
-    margin-bottom: 1rem;
-    padding: 0.5rem;
-    background: var(--bg-secondary);
-    border-radius: 6px;
-}
-
-.message-images-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-    gap: 0.5rem;
-    margin: 0.5rem 0;
-}
-
-.message-image-grid-item {
-    border-radius: 6px;
-    overflow: hidden;
-    cursor: pointer;
-    transition: transform 0.2s ease;
-}
-
-.message-image-grid-item:hover {
-    transform: scale(1.05);
-}
-
-.message-image-grid-item img {
-    width: 100%;
-    height: 80px;
-    object-fit: cover;
-    display: block;
 }
 
 .image-modal-actions {
-    margin-top: 1rem;
     display: flex;
     gap: 1rem;
     justify-content: center;
@@ -692,7 +781,7 @@ body {
 
     .chat-header {
         background: var(--bg-primary);
-        padding: 0.75rem 1rem;
+        padding: 0.5rem 1rem;
         border-bottom: 1px solid var(--border-color);
         position: sticky;
         top: 0;
@@ -782,7 +871,7 @@ body {
 
     .image-modal-content {
         width: 95%;
-        padding: 10px;
+        padding: 8px;
     }
 
     .image-modal-actions {
@@ -800,19 +889,39 @@ body {
     }
 
     .image-preview-container {
-        grid-template-columns: repeat(2, 1fr);
         max-height: 300px;
-        gap: 0.75rem;
-        padding: 0.75rem;
+        gap: 8px;
+        padding: 0.5rem;
     }
 
-    .message-images-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 0.375rem;
+    .image-preview-item {
+        max-width: 280px;
     }
 
-    .message-image-grid-item img {
-        height: 70px;
+    .image-preview-item img {
+        height: 200px;
+    }
+
+    .image-preview-remove {
+        width: 20px;
+        height: 20px;
+        font-size: 12px;
+    }
+
+    .image-preview-nav {
+        margin: 8px 0;
+        gap: 15px;
+    }
+
+    .nav-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 14px;
+    }
+
+    .page-indicator {
+        font-size: 13px;
+        min-width: 70px;
     }
 
     .drag-drop-content {
@@ -824,32 +933,54 @@ body {
     }
 
     .image-viewer-controls {
-        bottom: 20px;
-        padding: 12px;
-    }
-
-    .image-control-btn {
+        bottom: 15px;
         padding: 10px;
     }
 
+    .image-control-btn {
+        padding: 8px;
+    }
+
     .image-modal-close {
-        top: 15px;
-        right: 20px;
-        font-size: 2rem;
-        width: 40px;
-        height: 40px;
+        top: 10px;
+        right: 15px;
+        font-size: 1.5rem;
+        width: 35px;
+        height: 35px;
     }
 
     .image-viewer-info {
-        top: 20px;
+        top: 15px;
         font-size: 0.8rem;
-        padding: 6px 12px;
+        padding: 5px 10px;
+    }
+
+    .image-nav-btn {
+        width: 35px;
+        height: 35px;
+        padding: 0.5rem;
+    }
+
+    .image-nav-prev {
+        left: 8px;
+    }
+
+    .image-nav-next {
+        right: 8px;
+    }
+
+    .image-modal-header {
+        padding: 0.5rem 0.75rem;
+    }
+
+    .image-modal-footer {
+        padding: 0.5rem 0.75rem;
     }
 }
 
 @media (max-width: 480px) {
     .chat-header {
-        padding: 0.625rem 0.875rem;
+        padding: 0.5rem 0.75rem;
     }
 
     .chat-header h1 {
@@ -908,12 +1039,33 @@ body {
     }
 
     .image-preview-container {
-        grid-template-columns: 1fr;
         max-height: 250px;
+        gap: 6px;
+        padding: 0.375rem;
     }
 
-    .message-images-grid {
-        grid-template-columns: 1fr;
+    .image-preview-item {
+        max-width: 240px;
+    }
+
+    .image-preview-item img {
+        height: 180px;
+    }
+
+    .image-preview-nav {
+        gap: 12px;
+        margin: 6px 0;
+    }
+
+    .nav-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 12px;
+    }
+
+    .page-indicator {
+        font-size: 12px;
+        min-width: 60px;
     }
 
     .drag-drop-content h3 {
@@ -925,26 +1077,45 @@ body {
     }
 
     .image-viewer-controls {
-        bottom: 15px;
-        padding: 10px;
-        gap: 8px;
+        bottom: 10px;
+        padding: 8px;
+        gap: 6px;
     }
 
     .image-control-btn {
-        padding: 8px;
+        padding: 6px;
     }
 
     .image-control-btn svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    .image-modal-close {
+        top: 8px;
+        right: 12px;
+        font-size: 1.25rem;
+        width: 30px;
+        height: 30px;
+    }
+
+    .image-nav-btn {
+        width: 30px;
+        height: 30px;
+        padding: 0.4rem;
+    }
+
+    .image-nav-btn svg {
         width: 16px;
         height: 16px;
     }
 
-    .image-modal-close {
-        top: 10px;
-        right: 15px;
-        font-size: 1.5rem;
-        width: 35px;
-        height: 35px;
+    .image-modal-header {
+        padding: 0.375rem 0.5rem;
+    }
+
+    .image-modal-footer {
+        padding: 0.375rem 0.5rem;
     }
 }
 

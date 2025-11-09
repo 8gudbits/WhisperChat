@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Whisper Chat Room</title>
+    <title>Whisper Chat - Room</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
@@ -100,6 +100,41 @@
     <div id="image-modal" class="image-modal">
       <div class="image-modal-content">
         <span class="image-modal-close">&times;</span>
+
+        <button
+          class="image-nav-btn image-nav-prev"
+          id="prev-image-btn"
+          title="Previous Image"
+        >
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <polyline points="15,18 9,12 15,6"></polyline>
+          </svg>
+        </button>
+
+        <button
+          class="image-nav-btn image-nav-next"
+          id="next-image-btn"
+          title="Next Image"
+        >
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <polyline points="9,18 15,12 9,6"></polyline>
+          </svg>
+        </button>
+
         <div class="image-viewer-container">
           <div class="image-viewer-controls">
             <button class="image-control-btn" id="zoom-in-btn" title="Zoom In">
@@ -177,6 +212,8 @@
             <img id="image-modal-img" class="zoomable-image" />
           </div>
           <div class="image-viewer-info">
+            <span id="image-counter">1 / 1</span>
+            <span>-</span>
             <span id="zoom-level">100%</span>
           </div>
         </div>
@@ -185,14 +222,18 @@
 
     <div id="image-preview-modal" class="image-modal">
       <div class="image-modal-content">
-        <span class="image-modal-close">&times;</span>
-        <div class="image-preview-container" id="image-preview-container"></div>
-        <div class="image-counter" id="image-counter"></div>
-        <div class="image-modal-actions">
-          <button id="send-image-btn" class="btn-send-image">
-            Send Images
-          </button>
-          <button id="cancel-image-btn" class="btn-cancel-image">Cancel</button>
+        <div class="image-modal-header">
+          <h3>Selected Images</h3>
+        </div>
+        <div id="image-preview-container" class="image-preview-container"></div>
+        <div id="image-preview-nav" class="image-preview-nav"></div>
+        <div class="image-modal-footer">
+          <div class="image-modal-actions">
+            <button id="cancel-image-btn" class="btn-cancel-image">
+              Cancel
+            </button>
+            <button id="send-image-btn" class="btn-send-image">Send</button>
+          </div>
         </div>
       </div>
     </div>

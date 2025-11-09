@@ -1,6 +1,6 @@
 import os, secrets, random, threading, base64
 from logging.config import dictConfig
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, abort
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from flask_cors import CORS
 from string import ascii_uppercase
@@ -15,7 +15,7 @@ from PIL import Image
 class Config:
     ###  Application Settings  ###
     APP_NAME = "WhisperChat"
-    VERSION = "2.0.0-rc4"
+    VERSION = "2.0.0-rc5"
     SECRET_KEY = os.getenv("SECRET_KEY", secrets.token_hex(24))
 
     ###  Server Settings  ###
@@ -30,8 +30,8 @@ class Config:
     ROOM_CLEANUP_DELAY = 120.0  # in seconds (2 minutes)
 
     ### Image Settings ###
-    MAX_IMAGE_SIZE = 8 * 1024 * 1024  # 8MB
-    MAX_IMAGE_DIMENSION = 1200  # pixels
+    MAX_IMAGE_SIZE = 50 * 1024 * 1024  # 50MB
+    ALLOWED_IMAGE_FORMATS = ["JPEG", "PNG", "GIF", "WEBP"]
 
     ###  ANSI colors for console output  ###
     class Colors:
@@ -49,7 +49,6 @@ class ChatServer:
         self.app.config["SECRET_KEY"] = Config.SECRET_KEY
         self.app.config["MAX_CONTENT_LENGTH"] = Config.MAX_IMAGE_SIZE
 
-        # CORS configuration
         CORS(self.app, resources={r"/api/*": {"origins": Config.ORIGINS}})
 
         self.socketio = SocketIO(
@@ -74,47 +73,32 @@ class ChatServer:
             if code not in self.rooms:
                 return code
 
-    def _validate_and_optimize_image(self, image_data):
-        """Validate and optimize uploaded image"""
+    def _validate_image(self, image_data):
+        """Validate image format only - no processing"""
         try:
-            # Remove data URL prefix if present
             if "," in image_data:
                 image_data = image_data.split(",")[1]
 
-            # Decode base64
             image_bytes = base64.b64decode(image_data)
 
-            # Check file size
             if len(image_bytes) > Config.MAX_IMAGE_SIZE:
-                return None, "Image size too large (max 8MB)"
-
-            # Open image with PIL
-            image = Image.open(BytesIO(image_bytes))
-
-            # Check image format
-            if image.format not in ["JPEG", "PNG", "GIF", "WEBP"]:
-                return None, "Unsupported image format"
-
-            # Resize if too large
-            if max(image.size) > Config.MAX_IMAGE_DIMENSION:
-                image.thumbnail(
-                    (Config.MAX_IMAGE_DIMENSION, Config.MAX_IMAGE_DIMENSION),
-                    Image.Resampling.LANCZOS,
+                return (
+                    None,
+                    f"Image size too large (max {Config.MAX_IMAGE_SIZE // (1024*1024)}MB)",
                 )
 
-            # Convert to RGB if necessary (for JPEG)
-            if image.format == "JPEG" and image.mode in ("RGBA", "P"):
-                image = image.convert("RGB")
+            try:
+                image = Image.open(BytesIO(image_bytes))
+                if image.format not in Config.ALLOWED_IMAGE_FORMATS:
+                    return (
+                        None,
+                        f"Unsupported image format: {image.format}. Allowed: {', '.join(Config.ALLOWED_IMAGE_FORMATS)}",
+                    )
+            except Exception as img_error:
+                print(f"Image format check warning: {img_error}")
+                pass
 
-            # Save optimized image
-            output = BytesIO()
-            if image.format == "PNG":
-                image.save(output, format="PNG", optimize=True)
-            else:
-                image.save(output, format="JPEG", quality=85, optimize=True)
-
-            optimized_data = base64.b64encode(output.getvalue()).decode("utf-8")
-            return optimized_data, None
+            return image_data, None
 
         except Exception as e:
             return None, f"Invalid image: {str(e)}"
@@ -140,11 +124,13 @@ class ChatServer:
         )
 
     def _setup_routes(self):
-        @self.app.route("/api/health", methods=["GET"])
-        def health_check():
+        @self.app.route("/api/serverinfo", methods=["GET"])
+        def server_info():
+            allowed_host = f"localhost:{Config.PORT}"
+            if request.host != allowed_host:
+                abort(403, description="Invalid Host Header")
             return jsonify(
                 {
-                    "status": "healthy",
                     "service": Config.APP_NAME,
                     "version": Config.VERSION,
                     "active_rooms": len(self.rooms),
@@ -167,7 +153,6 @@ class ChatServer:
                 "last_activity": datetime.now(),
             }
 
-            # Cancel any pending cleanup for this room (in case of reuse)
             if room_code in self.room_cleanup_timers:
                 self.room_cleanup_timers[room_code].cancel()
                 del self.room_cleanup_timers[room_code]
@@ -218,11 +203,9 @@ class ChatServer:
                     self.rooms[room_code]["members"] -= 1
                     self.rooms[room_code]["last_activity"] = datetime.now()
 
-                    # If room is now empty, schedule cleanup
                     if self.rooms[room_code]["members"] <= 0:
                         self._schedule_room_cleanup(room_code)
                     else:
-                        # Notify remaining users
                         emit(
                             "user_left",
                             {
@@ -248,7 +231,6 @@ class ChatServer:
                 emit("error", {"message": "Room does not exist"})
                 return
 
-            # Cancel cleanup timer if room is being rejoined
             if room_code in self.room_cleanup_timers:
                 self.room_cleanup_timers[room_code].cancel()
                 del self.room_cleanup_timers[room_code]
@@ -263,7 +245,6 @@ class ChatServer:
             self.rooms[room_code]["members"] += 1
             self.rooms[room_code]["last_activity"] = datetime.now()
 
-            # Notify room about new user
             emit(
                 "user_joined",
                 {
@@ -274,7 +255,6 @@ class ChatServer:
                 to=room_code,
             )
 
-            # Send message history to new user
             emit("message_history", {"messages": self.rooms[room_code]["messages"]})
 
             print(f"{username} joined room {room_code}")
@@ -291,11 +271,9 @@ class ChatServer:
                     self.rooms[room_code]["members"] -= 1
                     self.rooms[room_code]["last_activity"] = datetime.now()
 
-                    # If room is now empty, schedule cleanup
                     if self.rooms[room_code]["members"] <= 0:
                         self._schedule_room_cleanup(room_code)
                     else:
-                        # Notify remaining users
                         emit(
                             "user_left",
                             {
@@ -328,7 +306,6 @@ class ChatServer:
             if not message_text and not image_data:
                 return
 
-            # Update last activity
             self.rooms[room_code]["last_activity"] = datetime.now()
 
             message_data = {
@@ -338,21 +315,18 @@ class ChatServer:
                 "timestamp": datetime.now().isoformat(),
             }
 
-            # Handle image if present
             if image_data:
-                optimized_image, error = self._validate_and_optimize_image(image_data)
+                validated_image, error = self._validate_image(image_data)
                 if error:
                     emit("error", {"message": error})
                     return
-                message_data["image"] = optimized_image
+                message_data["image"] = validated_image
                 message_data["type"] = "image"
                 if not message_text:
                     message_data["message"] = "Sent an image"
 
-            # Store message
             self.rooms[room_code]["messages"].append(message_data)
 
-            # Broadcast to room
             emit("new_message", message_data, to=room_code)
 
             log_message = f"Message from {username} in {room_code}"
