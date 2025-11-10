@@ -22,7 +22,7 @@ class Config:
     """Server configuration settings"""
 
     ###  Application Settings  ###
-    APP_NAME, VERSION = "WhisperChat", "2.0.0-rc5"
+    APP_NAME, VERSION = "WhisperChat", "2.0.0-rc6"
     SECRET_KEY = os.getenv("SECRET_KEY", secrets.token_hex(24))
 
     ###  Server Settings  ###
@@ -78,6 +78,8 @@ class ChatServer:
         self.app = Flask(f"{Config.APP_NAME}-API")
         self.app.config["SECRET_KEY"] = Config.SECRET_KEY
         self.app.config["MAX_CONTENT_LENGTH"] = Config.MAX_IMAGE_SIZE
+        self.app.config["JSONIFY_PRETTYPRINT_REGULAR"] = False
+        self.app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0
 
         CORS(self.app, resources={r"/api/*": {"origins": Config.ORIGINS}})
         self.socketio = SocketIO(
@@ -198,6 +200,17 @@ class ChatServer:
             """Check if room exists"""
             exists = room_code in self.rooms
             return jsonify({"exists": exists})
+
+        @self.app.after_request
+        def add_security_headers(response):
+            """Add security headers to responses"""
+            response.headers["X-Content-Type-Options"] = "nosniff"
+            response.headers["X-Frame-Options"] = "DENY"
+            response.headers["X-XSS-Protection"] = "1; mode=block"
+            response.headers["Strict-Transport-Security"] = (
+                "max-age=31536000; includeSubDomains"
+            )
+            return response
 
     def _schedule_room_cleanup(self, room_code):
         """Schedule room cleanup after delay"""

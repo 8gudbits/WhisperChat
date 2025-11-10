@@ -147,9 +147,23 @@ class ChatRoom {
     );
 
     messageInput.addEventListener("input", () => this.handleInputChange());
-    messageInput.addEventListener("keypress", (e) => {
+
+    messageInput.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
-        this.handleActionButton();
+        if (e.shiftKey) {
+          e.preventDefault();
+          const start = messageInput.selectionStart;
+          const end = messageInput.selectionEnd;
+          messageInput.value =
+            messageInput.value.substring(0, start) +
+            "\n" +
+            messageInput.value.substring(end);
+          messageInput.selectionStart = messageInput.selectionEnd = start + 1;
+          this.handleInputChange();
+        } else {
+          e.preventDefault();
+          this.handleActionButton();
+        }
       }
     });
 
@@ -852,19 +866,21 @@ class ChatRoom {
           `;
     }
 
-    const linkifiedMessage = this.linkify(messageData.message);
+    const formattedMessage = this.linkifyWithNewlines(messageData.message);
 
     messageElement.innerHTML = `
           ${
             showUsername
-              ? `<div class="message-username show">${messageData.username}</div>`
+              ? `<div class="message-username show">${this.escapeHtml(
+                  messageData.username
+                )}</div>`
               : '<div class="message-username"></div>'
           }
           <div class="message-bubble">
               ${messageData.image ? imageHtml : ""}
               ${
-                !messageData.image
-                  ? `<div class="message-content">${linkifiedMessage}</div>`
+                !messageData.image && messageData.message
+                  ? `<div class="message-content">${formattedMessage}</div>`
                   : ""
               }
               <div class="message-time">${time}</div>
@@ -875,12 +891,36 @@ class ChatRoom {
     container.scrollTop = container.scrollHeight;
   }
 
-  linkify(text) {
+  linkifyWithNewlines(text) {
+    if (!text) return "";
+
+    const escapedText = this.escapeHtml(text);
     const urlRegex = /(https?:\/\/[^\s]+)/g;
-    return this.escapeHtml(text).replace(
-      urlRegex,
-      '<a href="$1" target="_blank" rel="noopener noreferrer" class="message-link">$1</a>'
-    );
+    const parts = escapedText.split(urlRegex);
+    let result = "";
+
+    for (let i = 0; i < parts.length; i++) {
+      if (i % 2 === 0) {
+        result += parts[i].replace(/\n/g, "<br>");
+      } else {
+        result += `<a href="${parts[i]}" target="_blank" rel="noopener noreferrer" class="message-link">${parts[i]}</a>`;
+      }
+    }
+
+    return result;
+  }
+
+  escapeHtml(text) {
+    if (text == null) return "";
+
+    const div = document.createElement("div");
+    div.textContent = text;
+    return div.innerHTML
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#x27;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\//g, "&#x2F;");
   }
 
   showFullImageFromMessage(imageSrc, clickedImage) {
@@ -980,12 +1020,6 @@ class ChatRoom {
         toast.classList.remove("show");
       }, 3000);
     }
-  }
-
-  escapeHtml(text) {
-    const div = document.createElement("div");
-    div.textContent = text;
-    return div.innerHTML;
   }
 }
 

@@ -47,6 +47,31 @@ class ChatApp {
   }
 
   setupEventListeners() {
+    const usernameInput = document.getElementById("username-input");
+    const roomCodeInput = document.getElementById("room-code-input");
+
+    usernameInput.addEventListener("input", (e) => {
+      this.validateUsernameInput(e.target);
+    });
+
+    roomCodeInput.addEventListener("input", (e) => {
+      this.validateRoomCodeInput(e.target);
+    });
+
+    usernameInput.addEventListener("paste", (e) => {
+      e.preventDefault();
+      const text = e.clipboardData.getData("text/plain");
+      const cleaned = this.cleanUsername(text);
+      document.execCommand("insertText", false, cleaned);
+    });
+
+    roomCodeInput.addEventListener("paste", (e) => {
+      e.preventDefault();
+      const text = e.clipboardData.getData("text/plain");
+      const cleaned = this.cleanRoomCode(text);
+      document.execCommand("insertText", false, cleaned);
+    });
+
     document
       .getElementById("join-btn")
       .addEventListener("click", () => this.joinRoom());
@@ -67,6 +92,54 @@ class ChatApp {
       });
   }
 
+  validateUsernameInput(input) {
+    const originalValue = input.value;
+    const cleanedValue = this.cleanUsername(originalValue);
+
+    if (originalValue !== cleanedValue) {
+      const cursorPosition =
+        input.selectionStart - (originalValue.length - cleanedValue.length);
+      input.value = cleanedValue;
+      input.setSelectionRange(cursorPosition, cursorPosition);
+    }
+  }
+
+  validateRoomCodeInput(input) {
+    const originalValue = input.value;
+    const cleanedValue = this.cleanRoomCode(originalValue);
+
+    if (originalValue !== cleanedValue) {
+      const cursorPosition =
+        input.selectionStart - (originalValue.length - cleanedValue.length);
+      input.value = cleanedValue;
+      input.setSelectionRange(cursorPosition, cursorPosition);
+    }
+  }
+
+  cleanUsername(input) {
+    return input.replace(/[^a-zA-Z0-9]/g, "");
+  }
+
+  cleanRoomCode(input) {
+    return input.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+  }
+
+  isValidUsername(username) {
+    return (
+      /^[a-zA-Z0-9]+$/.test(username) &&
+      username.length >= 1 &&
+      username.length <= 20
+    );
+  }
+
+  isValidRoomCode(roomCode) {
+    return (
+      /^[A-Z0-9]+$/.test(roomCode) &&
+      roomCode.length >= 1 &&
+      roomCode.length <= 8
+    );
+  }
+
   showError(message) {
     const errorDiv = document.getElementById("error-message");
     const errorText = document.getElementById("error-text");
@@ -79,10 +152,21 @@ class ChatApp {
   }
 
   async createRoom() {
-    const username = document.getElementById("username-input").value.trim();
+    const usernameInput = document.getElementById("username-input");
+    let username = usernameInput.value.trim();
+
+    username = this.cleanUsername(username);
+    usernameInput.value = username;
 
     if (!username) {
       this.showError("Please enter your name");
+      return;
+    }
+
+    if (!this.isValidUsername(username)) {
+      this.showError(
+        "Name can only contain letters and numbers (1-20 characters)"
+      );
       return;
     }
 
@@ -90,7 +174,7 @@ class ChatApp {
       const response = await fetch(`${CONFIG.BACKEND_URL}/api/rooms`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username }),
+        body: JSON.stringify({ username: this.escapeHtml(username) }),
       });
 
       const data = await response.json();
@@ -106,19 +190,37 @@ class ChatApp {
   }
 
   async joinRoom() {
-    const username = document.getElementById("username-input").value.trim();
-    const roomCode = document
-      .getElementById("room-code-input")
-      .value.trim()
-      .toUpperCase();
+    const usernameInput = document.getElementById("username-input");
+    const roomCodeInput = document.getElementById("room-code-input");
+
+    let username = usernameInput.value.trim();
+    let roomCode = roomCodeInput.value.trim();
+
+    username = this.cleanUsername(username);
+    roomCode = this.cleanRoomCode(roomCode);
+
+    usernameInput.value = username;
+    roomCodeInput.value = roomCode;
 
     if (!username) {
       this.showError("Please enter your name");
       return;
     }
 
+    if (!this.isValidUsername(username)) {
+      this.showError(
+        "Name can only contain letters and numbers (1-20 characters)"
+      );
+      return;
+    }
+
     if (!roomCode) {
       this.showError("Please enter a room code");
+      return;
+    }
+
+    if (!this.isValidRoomCode(roomCode)) {
+      this.showError("Room code can only contain letters and numbers");
       return;
     }
 
@@ -139,9 +241,25 @@ class ChatApp {
   }
 
   redirectToChat(username, roomCode) {
-    localStorage.setItem("username", username);
-    localStorage.setItem("roomCode", roomCode);
-    window.location.href = `chat.html?room=${roomCode}`;
+    const safeUsername = this.escapeHtml(username);
+    const safeRoomCode = this.escapeHtml(roomCode);
+
+    localStorage.setItem("username", safeUsername);
+    localStorage.setItem("roomCode", safeRoomCode);
+
+    window.location.href = `chat.html?room=${encodeURIComponent(safeRoomCode)}`;
+  }
+
+  escapeHtml(text) {
+    if (text == null) return "";
+    const div = document.createElement("div");
+    div.textContent = text;
+    return div.innerHTML
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#x27;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\//g, "&#x2F;");
   }
 }
 
