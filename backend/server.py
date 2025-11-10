@@ -1,12 +1,18 @@
-import os, secrets, random, threading, base64, logging
-from logging.config import dictConfig
-from flask import Flask, request, jsonify, abort
-from flask_socketio import SocketIO, emit, join_room, leave_room
+import os
+import secrets
+import logging
+import random
+import base64
+import threading
+
+from flask import Flask, request, abort, jsonify
 from flask_cors import CORS
+from flask_socketio import SocketIO, emit, join_room, leave_room
+from logging.config import dictConfig
 from string import ascii_uppercase
-from datetime import datetime
-from io import BytesIO
 from PIL import Image
+from io import BytesIO
+from datetime import datetime
 
 
 # ===================================================== #
@@ -16,8 +22,7 @@ class Config:
     """Server configuration settings"""
 
     ###  Application Settings  ###
-    APP_NAME = "WhisperChat"
-    VERSION = "2.0.0-rc5"
+    APP_NAME, VERSION = "WhisperChat", "2.0.0-rc5"
     SECRET_KEY = os.getenv("SECRET_KEY", secrets.token_hex(24))
 
     ###  Server Settings  ###
@@ -26,21 +31,41 @@ class Config:
 
     ###  CORS Settings  ###
     ## Allow all origins; modify as needed
+    ## Example: ORIGINS = ["http://localhost:5500", "https://mydomain.com"]
     ORIGINS = ["*"]
 
     ###  Room Settings  ###
-    ROOM_CODE_LENGTH = 6
-    ROOM_CLEANUP_DELAY = 120.0  # in seconds (2 minutes)
+    ROOM_CODE_LENGTH = 7
+    ROOM_CLEANUP_DELAY = 120.0  # in seconds
 
     ###  Image Settings  ###
-    MAX_IMAGE_SIZE = 50 * 1024 * 1024  # 50MB
+    MAX_IMAGE_SIZE = 24 * 1024 * 1024  # 24MB
     ALLOWED_IMAGE_FORMATS = ["JPEG", "PNG", "GIF", "WEBP"]
 
     ###  ANSI colors for console output  ###
     class Colors:
+        WHITE = "\033[97m"
         AQUA = "\033[96m"
         GREEN = "\033[92m"
+        YELLOW = "\033[93m"
+        RED = "\033[91m"
         RESET = "\033[0m"
+
+
+class ColorFormatter(logging.Formatter):
+    """Custom formatter for colored logs"""
+
+    COLORS = {
+        logging.INFO: Config.Colors.WHITE,
+        logging.WARNING: Config.Colors.YELLOW,
+        logging.ERROR: Config.Colors.RED,
+        logging.DEBUG: Config.Colors.AQUA,
+    }
+
+    def format(self, record):
+        color = self.COLORS.get(record.levelno, Config.Colors.RESET)
+        message = super().format(record)
+        return f"{color}{message}{Config.Colors.RESET}"
 
 
 # ============================ #
@@ -55,7 +80,6 @@ class ChatServer:
         self.app.config["MAX_CONTENT_LENGTH"] = Config.MAX_IMAGE_SIZE
 
         CORS(self.app, resources={r"/api/*": {"origins": Config.ORIGINS}})
-
         self.socketio = SocketIO(
             self.app, cors_allowed_origins="*", logger=True, manage_session=False
         )
@@ -86,7 +110,6 @@ class ChatServer:
                 image_data = image_data.split(",")[1]
 
             image_bytes = base64.b64decode(image_data)
-
             if len(image_bytes) > Config.MAX_IMAGE_SIZE:
                 return (
                     None,
@@ -101,7 +124,7 @@ class ChatServer:
                         f"Unsupported image format: {image.format}. Allowed: {', '.join(Config.ALLOWED_IMAGE_FORMATS)}",
                     )
             except Exception as img_error:
-                self.logger.warning(f"Image format check warning: {img_error}")
+                self.logger.warning(f"Image format validation failed: {img_error}")
                 pass
 
             return image_data, None
@@ -110,23 +133,20 @@ class ChatServer:
             return None, f"Invalid image: {str(e)}"
 
     def _setup_logging(self):
-        """Configure application logging"""
+        """Configure application logging with colors"""
+        handler = logging.StreamHandler()
+        handler.setFormatter(ColorFormatter("%(levelname).1s: %(message)s"))
+
         dictConfig(
             {
                 "version": 1,
-                "formatters": {
-                    "default": {
-                        "format": "%(levelname).1s: %(message)s",
-                    }
-                },
                 "handlers": {
                     "wsgi": {
-                        "class": "logging.StreamHandler",
-                        "stream": "ext://flask.logging.wsgi_errors_stream",
-                        "formatter": "default",
+                        "()": lambda: handler,
                     }
                 },
                 "root": {"level": "INFO", "handlers": ["wsgi"]},
+                "disable_existing_loggers": False,
             }
         )
 
@@ -357,10 +377,10 @@ class ChatServer:
         """Start the chat server"""
         start_time = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
         print(
-            f"{Config.Colors.GREEN}{start_time} {Config.Colors.AQUA}{Config.APP_NAME}{Config.Colors.GREEN} v{Config.VERSION}"
+            f"{Config.Colors.GREEN}{start_time} {Config.Colors.AQUA}{Config.APP_NAME} v{Config.VERSION}{Config.Colors.RESET}"
         )
         print(
-            f"Server starting on {Config.Colors.AQUA}http://{self.host}:{self.port}{Config.Colors.RESET}"
+            f"{Config.Colors.GREEN}Server starting on {Config.Colors.AQUA}http://{self.host}:{self.port}{Config.Colors.RESET}"
         )
 
         self.socketio.run(
