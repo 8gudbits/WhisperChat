@@ -546,11 +546,11 @@ class ChatRoom {
     this.socket.on("disconnect", (reason) => {});
 
     this.socket.on("connect_error", (error) => {
-      alert("Failed to connect to chat server");
+      this.showCustomToast("Failed to connect to chat server", "error");
     });
 
     this.socket.on("error", (data) => {
-      alert(data.message || "Chat error occurred");
+      this.showCustomToast(data.message || "Chat error occurred", "error");
     });
 
     this.socket.on("message_history", (data) => {
@@ -611,15 +611,17 @@ class ChatRoom {
     );
 
     if (validImageFiles.length === 0) {
-      alert(
-        "Please select valid image files (JPEG, PNG, GIF, WEBP, SVG, AVIF)."
+      this.showCustomToast(
+        "Please select valid image files (JPEG, PNG, GIF, WEBP).",
+        "error"
       );
       return;
     }
 
     if (validImageFiles.length !== files.length) {
-      alert(
-        `${validImageFiles.length} valid images selected. Some files were skipped.`
+      this.showCustomToast(
+        `${validImageFiles.length} valid images selected. Some files were skipped.`,
+        "info"
       );
     }
 
@@ -1013,13 +1015,21 @@ class ChatRoom {
   }
 
   showToast() {
+    this.showCustomToast("Room code copied!", "success");
+  }
+
+  showCustomToast(message, type = "info") {
     const toast = document.getElementById("toast");
-    if (toast) {
-      toast.classList.add("show");
-      setTimeout(() => {
-        toast.classList.remove("show");
-      }, 3000);
-    }
+    if (!toast) return;
+
+    toast.textContent = message;
+    toast.className = "toast";
+    toast.classList.add(`toast-${type}`);
+    toast.classList.add("show");
+
+    setTimeout(() => {
+      toast.classList.remove("show");
+    }, 3000);
   }
 }
 

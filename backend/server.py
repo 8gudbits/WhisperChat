@@ -22,7 +22,7 @@ class Config:
     """Server configuration settings"""
 
     ###  Application Settings  ###
-    APP_NAME, VERSION = "WhisperChat", "2.0.0-rc6"
+    APP_NAME, VERSION = "WhisperChat", "2.0.0-rc7"
     SECRET_KEY = os.getenv("SECRET_KEY", secrets.token_hex(24))
 
     ###  Server Settings  ###
