@@ -98,6 +98,7 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     min-height: 100vh;
+    overflow: visible;
 }
 
 .hero-content {
@@ -105,13 +106,13 @@ body {
     grid-template-columns: 1fr 1fr;
     gap: 4rem;
     align-items: center;
+    width: 100%;
 }
 
 .hero-title {
     font-size: 3.5rem;
     font-weight: 700;
     line-height: 1.1;
-    padding-top: 2rem;
     margin-bottom: 1.5rem;
 }
 
@@ -559,6 +560,7 @@ body {
 
     .hero-title {
         font-size: 2.5rem;
+        padding-top: 2rem;
     }
 
     .hero-actions {
@@ -620,11 +622,12 @@ body {
 
     .hero-section {
         padding: 2rem 1rem;
+        min-height: auto;
     }
 
     .hero-title {
         font-size: 2rem;
-        padding-top: 2.5rem;
+        padding-top: 3rem;
     }
 
     .section-title {
@@ -653,7 +656,7 @@ body {
 @media (max-width: 376px) {
     .hero-title {
         font-size: 1.75rem;
-        padding-top: 3rem;
+        padding-top: 4rem;
     }
 
     .landing-header .header-content {
