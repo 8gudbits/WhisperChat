@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
+    <link rel="icon" href="{{ url_for('static', filename='assets/favicon.ico') }}" type="image/x-icon" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/room.css') }}" />
+    <title>Whisper Chat</title>
+  </head>
+  <body>
+    <div class="particles-container" id="particles-js"></div>
+    <section class="topheader">
+      <h1 style="padding: 10px">Whisper Chat</h1>
+    </section>
+    <main class="content">
+      <div class="message-box">
+        <h2 id="roomCode">Chat Room Code: {{ code }}</h2>
+        <div id="toast" class="toast">Room Code copied!</div>
+        <div class="messages" id="messages"></div>
+        <div class="inputs">
+          <input
+            type="text"
+            placeholder="Type your message..."
+            name="message"
+            id="message"
+          />
+          <button
+            type="button"
+            name="send"
+            id="send-btn"
+            class="button-hover btn"
+            onClick="sendMessage()"
+          >
+            Send
+          </button>
+        </div>
+      </div>
+    </main>
+    <script type="text/javascript">
+      document.addEventListener('DOMContentLoaded', function() {
+        particlesJS('particles-js', {
+          "particles": {
+            "number": {
+              "value": 80,
+              "density": {
+                "enable": true,
+                "value_area": 800
+              }
+            },
+            "color": {
+              "value": "#BD93F9"
+            },
+            "shape": {
+              "type": "circle",
+              "stroke": {
+                "width": 0,
+                "color": "#000000"
+              }
+            },
+            "opacity": {
+              "value": 0.5,
+              "random": true,
+              "anim": {
+                "enable": true,
+                "speed": 1,
+                "opacity_min": 0.1,
+                "sync": false
+              }
+            },
+            "size": {
+              "value": 3,
+              "random": true,
+              "anim": {
+                "enable": true,
+                "speed": 2,
+                "size_min": 0.1,
+                "sync": false
+              }
+            },
+            "line_linked": {
+              "enable": true,
+              "distance": 150,
+              "color": "#434E71",
+              "opacity": 0.4,
+              "width": 1
+            },
+            "move": {
+              "enable": true,
+              "speed": 1,
+              "direction": "none",
+              "random": true,
+              "straight": false,
+              "out_mode": "out",
+              "bounce": false,
+              "attract": {
+                "enable": true,
+                "rotateX": 600,
+                "rotateY": 1200
+              }
+            }
+          },
+          "interactivity": {
+            "detect_on": "canvas",
+            "events": {
+              "onhover": {
+                "enable": true,
+                "mode": "grab"
+              },
+              "onclick": {
+                "enable": true,
+                "mode": "push"
+              },
+              "resize": true
+            },
+            "modes": {
+              "grab": {
+                "distance": 140,
+                "line_linked": {
+                  "opacity": 1
+                }
+              },
+              "push": {
+                "particles_nb": 4
+              }
+            }
+          },
+          "retina_detect": true
+        });
+      });
+          
+      var socketio = io();
+      const messages = document.getElementById("messages");
+
+      const createMessage = (name, msg) => {
+        const content = `
+          <div class="text">
+            <div class="message-meta">
+              <span class="message-time">${new Date().toLocaleString()}</span>
+              <strong class="username">${name}:</strong>
+            </div>
+            <div class="message-content">${msg}</div>
+          </div>
+        `;
+        messages.innerHTML += content;
+        messages.scrollTop = messages.scrollHeight;
+      };
+
+      socketio.on("message", (data) => {
+        createMessage(data.name, data.message);
+      });
+
+      const sendMessage = () => {
+        const message = document.getElementById("message");
+        if (message.value.trim() === "") return;
+        socketio.emit("message", { data: message.value });
+        message.value = "";
+      };
+
+      {% for msg in messages %}
+      createMessage("{{ msg.name }}", "{{ msg.message }}");
+      {% endfor %}
+
+      window.onload = function() {
+        const inputBox = document.getElementById('message');
+        inputBox.focus();
+      };
+
+      const inputBox = document.getElementById('message');
+      inputBox.addEventListener('blur', function() {
+        inputBox.focus();
+      });
+
+      inputBox.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          sendMessage();
+        }
+      });
+
+      document.addEventListener('DOMContentLoaded', () => {
+        const roomCodeElement = document.getElementById('roomCode');
+        const toast = document.getElementById('toast');
+
+        roomCodeElement.addEventListener('click', () => {
+            const textToCopy = roomCodeElement.innerText.split(': ').pop();
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                toast.classList.add('show');
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 3000);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+            });
+      });
+    });
+    </script>
+  </body>
+</html>

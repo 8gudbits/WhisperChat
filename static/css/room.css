@@ -1,0 +1,322 @@
+:root {
+    --background: #282A36;
+    --foreground: #F8F8F2;
+    --red: #FF5555;
+    --purple: #BD93F9;
+    --raisin-black: #242135;
+    --medium-slate-blue: #434E71;
+    --very-dark-blue: #20222B;
+    --regular-grey: #414558;
+    --medium-purple: #7766CC;
+    --dark-purple: #3C3463;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    position: relative;
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: 'Poppins', sans-serif;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+}
+
+body {
+    background: radial-gradient(circle, var(--dark-purple) 0%, var(--raisin-black) 100%);
+    background-size: 300% 300%;
+    animation: backgroundAnimation 15s ease-in-out infinite;
+}
+
+.particles-container {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background: none !important;
+}
+
+.topheader {
+    background: var(--very-dark-blue);
+    padding: 10px 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: auto;
+}
+
+h1 {
+    font-size: 1.8rem;
+    margin: 0;
+    background: linear-gradient(135deg, var(--medium-purple), var(--purple));
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 10px rgba(189, 147, 249, 0.3);
+}
+
+.content {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.message-box {
+    border-radius: 16px;
+    background-color: var(--very-dark-blue);
+    height: 70vh;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 800px;
+    padding: 24px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(189, 147, 249, 0.1);
+}
+
+#roomCode {
+    text-align: center;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+    color: var(--purple);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#roomCode:hover {
+    color: var(--medium-purple);
+}
+
+.messages {
+    overflow-y: auto;
+    flex: 1;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    background-color: rgba(255, 255, 255, 0.05);
+    scrollbar-width: thin;
+    scrollbar-color: var(--medium-purple) rgba(255, 255, 255, 0.1);
+}
+
+.messages::-webkit-scrollbar {
+    width: 8px;
+}
+
+.messages::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+.messages::-webkit-scrollbar-thumb {
+    background: var(--medium-purple);
+    border-radius: 10px;
+}
+
+.messages::-webkit-scrollbar-thumb:hover {
+    background: var(--purple);
+}
+
+.text {
+    display: flex;
+    flex-direction: column;
+    padding: 8px 0;
+    font-size: 0.95rem;
+    gap: 4px;
+}
+
+.message-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.message-time {
+    font-size: 0.75rem;
+    color: var(--regular-grey);
+    order: -1;
+}
+
+.username {
+    color: var(--medium-purple);
+    font-weight: 500;
+}
+
+.message-content {
+    margin-left: 0;
+    word-break: break-word;
+}
+
+.muted {
+    font-size: 0.75rem;
+    color: var(--regular-grey);
+    align-self: flex-end;
+}
+
+.inputs {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+}
+
+input[type="text"] {
+    flex: 1;
+    padding: 12px 16px;
+    background-color: var(--background);
+    color: var(--foreground);
+    border: 1px solid var(--regular-grey);
+    border-radius: 50px;
+    outline: none;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+}
+
+input[type="text"]:focus {
+    border-color: var(--purple);
+    box-shadow: 0 0 0 2px rgba(189, 147, 249, 0.2);
+}
+
+.button-hover {
+    padding: 12px 24px;
+    font-size: 0.95rem;
+    color: var(--foreground);
+    border: none;
+    border-radius: 50px;
+    background: linear-gradient(135deg, var(--medium-purple), var(--purple));
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 1;
+    min-width: 80px;
+}
+
+.button-hover::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--purple), var(--medium-purple));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: -1;
+    border-radius: 50px;
+}
+
+.button-hover:hover::before {
+    opacity: 1;
+}
+
+.toast {
+    visibility: hidden;
+    min-width: 200px;
+    margin-left: -100px;
+    background-color: var(--medium-slate-blue);
+    color: var(--foreground);
+    text-align: center;
+    border-radius: 50px;
+    padding: 12px;
+    position: fixed;
+    z-index: 1;
+    left: 50%;
+    top: 20px;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.toast.show {
+    visibility: visible;
+    animation: fadein 0.5s, fadeout 0.5s 2.5s;
+}
+
+@keyframes fadein {
+    from {
+        top: -30px;
+        opacity: 0;
+    }
+
+    to {
+        top: 20px;
+        opacity: 1;
+    }
+}
+
+@keyframes fadeout {
+    from {
+        top: 20px;
+        opacity: 1;
+    }
+
+    to {
+        top: -30px;
+        opacity: 0;
+    }
+}
+
+@keyframes backgroundAnimation {
+    0% {
+        background-position: center;
+    }
+
+    20% {
+        background-position: top left;
+    }
+
+    40% {
+        background-position: bottom right;
+    }
+
+    60% {
+        background-position: top right;
+    }
+
+    80% {
+        background-position: bottom left;
+    }
+
+    100% {
+        background-position: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .message-box {
+        height: 75vh;
+        padding: 20px;
+    }
+
+    h1 {
+        font-size: 1.6rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .message-box {
+        height: 80vh;
+        padding: 16px;
+    }
+
+    .inputs {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .button-hover {
+        width: 100%;
+    }
+
+    h1 {
+        font-size: 1.4rem;
+    }
+}
