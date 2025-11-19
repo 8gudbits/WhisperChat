@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Whisper Chat</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="css/home.css" />
+  </head>
+  <body>
+    <div class="particles-container" id="particles-js"></div>
+
+    <header class="chat-header">
+      <div class="header-content">
+        <div class="logo-section">
+          <img src="assets/logo.png" class="logo" alt="Whisper Chat Logo" />
+          <h1 class="gradient-text">Whisper Chat</h1>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="auth-card">
+        <form class="auth-form">
+          <h2>Enter Chat Room</h2>
+          <p class="form-tagline">Connect Silently, Share Secrets</p>
+
+          <div class="input-group">
+            <label for="username-input">Your Name</label>
+            <input
+              type="text"
+              id="username-input"
+              placeholder="Enter your name"
+              required
+              maxlength="20"
+            />
+          </div>
+
+          <div class="input-group">
+            <label for="room-code-input">Room Code</label>
+            <input
+              type="text"
+              id="room-code-input"
+              placeholder="Enter room code (optional)"
+            />
+          </div>
+
+          <div class="button-group">
+            <button type="button" class="btn btn-primary" id="join-btn">
+              Join Room
+            </button>
+            <button type="button" class="btn btn-secondary" id="create-btn">
+              Create Room
+            </button>
+          </div>
+
+          <div class="error-message" id="error-message" style="display: none">
+            <p id="error-text"></p>
+          </div>
+        </form>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <p>
+        &copy; 2025 Whisper Chat | Made with ❤️ by
+        <a href="https://github.com/8gudbits" target="_blank">8gudbits</a>
+      </p>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="js/home.js"></script>
+  </body>
+</html>
+

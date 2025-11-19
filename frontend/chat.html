@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Whisper Chat - Room</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="css/chat.css" />
+  </head>
+  <body>
+    <div class="particles-container" id="particles-js"></div>
+
+    <div id="drag-drop-zone" class="drag-drop-zone">
+      <div class="drag-drop-content">
+        <svg
+          width="48"
+          height="48"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path
+            d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+          ></path>
+          <polyline points="14,2 14,8 20,8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10,9 9,9 8,9"></polyline>
+        </svg>
+        <h3>Drop images here to send</h3>
+        <p>You can select multiple images</p>
+      </div>
+    </div>
+
+    <header class="chat-header">
+      <div class="header-content">
+        <h1>Whisper Chat</h1>
+        <div class="room-info">
+          <span id="room-code-display">Loading...</span>
+          <button id="copy-btn" class="btn-copy">Copy</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="chat-main">
+      <div class="chat-container">
+        <div class="messages-container" id="messages-container"></div>
+
+        <div class="input-container">
+          <textarea
+            id="message-input"
+            placeholder="Type a message"
+            rows="1"
+          ></textarea>
+          <button id="action-btn" class="btn-action" title="Upload Images">
+            <svg
+              id="image-icon"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <circle cx="8.5" cy="8.5" r="1.5"></circle>
+              <polyline points="21,15 16,10 5,21"></polyline>
+            </svg>
+            <svg
+              id="send-icon"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              style="display: none"
+            >
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22,2 15,22 11,13 2,9"></polygon>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <input
+      type="file"
+      id="image-input"
+      accept="image/*"
+      multiple
+      style="display: none"
+    />
+
+    <div id="image-modal" class="image-modal">
+      <div class="image-modal-content">
+        <span class="image-modal-close">&times;</span>
+
+        <button
+          class="image-nav-btn image-nav-prev"
+          id="prev-image-btn"
+          title="Previous Image"
+        >
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <polyline points="15,18 9,12 15,6"></polyline>
+          </svg>
+        </button>
+
+        <button
+          class="image-nav-btn image-nav-next"
+          id="next-image-btn"
+          title="Next Image"
+        >
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <polyline points="9,18 15,12 9,6"></polyline>
+          </svg>
+        </button>
+
+        <div class="image-viewer-container">
+          <div class="image-viewer-controls">
+            <button class="image-control-btn" id="zoom-in-btn" title="Zoom In">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                <line x1="11" y1="8" x2="11" y2="14"></line>
+                <line x1="8" y1="11" x2="14" y2="11"></line>
+              </svg>
+            </button>
+            <button
+              class="image-control-btn"
+              id="zoom-out-btn"
+              title="Zoom Out"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                <line x1="8" y1="11" x2="14" y2="11"></line>
+              </svg>
+            </button>
+            <button
+              class="image-control-btn"
+              id="reset-zoom-btn"
+              title="Reset Zoom"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"
+                ></path>
+                <path d="M3 3v5h5"></path>
+              </svg>
+            </button>
+            <button
+              class="image-control-btn"
+              id="download-btn"
+              title="Download Image"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7,10 12,15 17,10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+            </button>
+          </div>
+          <div class="image-viewer" id="image-viewer">
+            <img id="image-modal-img" class="zoomable-image" />
+          </div>
+          <div class="image-viewer-info">
+            <span id="image-counter">1 / 1</span>
+            <span>-</span>
+            <span id="zoom-level">100%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="image-preview-modal" class="image-modal">
+      <div class="image-modal-content">
+        <div class="image-modal-header">
+          <h3>Selected Images</h3>
+        </div>
+        <div id="image-preview-container" class="image-preview-container"></div>
+        <div id="image-preview-nav" class="image-preview-nav"></div>
+        <div class="image-modal-footer">
+          <div class="image-modal-actions">
+            <button id="cancel-image-btn" class="btn-cancel-image">
+              Cancel
+            </button>
+            <button id="send-image-btn" class="btn-send-image">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast">Room code copied!</div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="js/chat.js"></script>
+  </body>
+</html>
+

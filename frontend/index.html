@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Whisper Chat - Private Ephemeral Messaging</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="css/index.css" />
+  </head>
+  <body>
+    <div class="particles-container" id="particles-js"></div>
+
+    <header class="landing-header">
+      <div class="header-content">
+        <div class="logo-section">
+          <img src="assets/logo.png" class="logo" alt="Whisper Chat Logo" />
+          <h1 class="gradient-text">Whisper Chat</h1>
+        </div>
+        <nav class="nav-links">
+          <a href="#features" class="nav-link">Features</a>
+          <a href="#how-it-works" class="nav-link">How It Works</a>
+          <a href="home.html" class="nav-link btn-get-started">Get Started</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="landing-main">
+      <!-- Hero Section -->
+      <section class="hero-section">
+        <div class="hero-content">
+          <div class="hero-text">
+            <h1 class="hero-title">
+              Private Conversations That <span class="highlight">Vanish</span>
+            </h1>
+            <p class="hero-subtitle">
+              Share secrets, make plans, and have private conversations that
+              leave no trace. No accounts, no history, no permanent storage.
+            </p>
+            <div class="hero-actions">
+              <a href="home.html" class="btn btn-primary btn-large">
+                Start Chatting
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </a>
+              <a href="#features" class="btn btn-secondary btn-large">
+                Learn More
+              </a>
+            </div>
+          </div>
+          <div class="hero-visual">
+            <div class="chat-preview">
+              <div class="chat-bubble left">Hey, got the plans?</div>
+              <div class="chat-bubble right">Yes! Meeting at 8pm</div>
+              <div class="chat-bubble left">Perfect, see you there!</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Features Section -->
+      <section id="features" class="features-section">
+        <div class="container">
+          <h2 class="section-title">Why Choose Whisper Chat?</h2>
+          <div class="features-grid">
+            <div class="feature-card">
+              <div class="feature-icon">
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M12 3a9 9 0 0 0-9 9 9 9 0 0 0 9 9 9 9 0 0 0 9-9 9 9 0 0 0-9-9z"
+                  />
+                  <path d="M12 8v4M12 16h0" />
+                </svg>
+              </div>
+              <h3>No Data Stored</h3>
+              <p>
+                Messages are delivered in real-time and never stored on servers.
+                When you leave, everything vanishes.
+              </p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon">
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                  <circle cx="8.5" cy="8.5" r="1.5" />
+                  <polyline points="21,15 16,10 5,21" />
+                </svg>
+              </div>
+              <h3>Share Images</h3>
+              <p>
+                Send images directly in your conversations with full-screen
+                viewing and intuitive navigation.
+              </p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon">
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+              </div>
+              <h3>Private Rooms</h3>
+              <p>
+                Create secure chat rooms with unique codes. Share the code only
+                with people you trust.
+              </p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon">
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg>
+              </div>
+              <h3>Instant Setup</h3>
+              <p>
+                No registration required. Just pick a name and start chatting
+                immediately.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- How It Works Section -->
+      <section id="how-it-works" class="how-it-works-section">
+        <div class="container">
+          <h2 class="section-title">How It Works</h2>
+          <div class="steps-grid">
+            <div class="step">
+              <div class="step-number">1</div>
+              <h3>Create or Join</h3>
+              <p>
+                Either create a new private room or join an existing one with a
+                room code.
+              </p>
+            </div>
+            <div class="step">
+              <div class="step-number">2</div>
+              <h3>Choose a Name</h3>
+              <p>
+                Pick a temporary display name for the session. No personal
+                information required.
+              </p>
+            </div>
+            <div class="step">
+              <div class="step-number">3</div>
+              <h3>Start Chatting</h3>
+              <p>
+                Share the room code with others and begin your private
+                conversation.
+              </p>
+            </div>
+            <div class="step">
+              <div class="step-number">4</div>
+              <h3>Leave No Trace</h3>
+              <p>
+                When everyone leaves, the room and all messages are permanently
+                erased.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CTA Section -->
+      <section class="cta-section">
+        <div class="container">
+          <div class="cta-content">
+            <h2>Ready for Private Conversations?</h2>
+            <p>
+              Join users who value their privacy and enjoy stress-free
+              messaging.
+            </p>
+            <a href="home.html" class="btn btn-primary btn-large">
+              Start Your Private Chat
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="landing-footer">
+      <div class="container">
+        <div class="footer-content">
+          <div class="footer-brand">
+            <div class="logo-section">
+              <img src="assets/logo.png" class="logo" alt="Whisper Chat Logo" />
+              <span class="gradient-text">Whisper Chat</span>
+            </div>
+            <p>Private, ephemeral messaging for secure conversations.</p>
+          </div>
+          <div class="footer-links">
+            <a href="#features" class="footer-link">Features</a>
+            <a href="#how-it-works" class="footer-link">How It Works</a>
+            <a href="home.html" class="footer-link">Get Started</a>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <p>
+            &copy; 2025 Whisper Chat | Made with ❤️ by
+            <a href="https://github.com/8gudbits" target="_blank">8gudbits</a>
+          </p>
+        </div>
+      </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="js/index.js"></script>
+  </body>
+</html>
+
